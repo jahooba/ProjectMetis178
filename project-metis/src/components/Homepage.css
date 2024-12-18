@@ -1,0 +1,148 @@
+* {
+    color: black;
+    background-color: #FFFF;
+    font-family: "Instrument Sans", serif;
+    font-weight: 600;
+}
+
+.homepage {
+    display: flex;
+    height: 100vh;
+    justify-content: space-between;
+}
+
+.leftSection {
+    margin-left: 40px;
+    margin-top: 40px;
+    z-index: 1;
+}
+
+/* Top Section of Webpage */
+.welcomeSection {
+    display: flex;
+    gap: 20px;
+    padding-bottom: 40px;
+}
+
+.welcomeLeftSection {
+    font-size: 32px;
+    display: flex;
+    flex-direction: column;
+}
+
+.mainWelcomeText {
+    margin-bottom: 15px;
+}
+
+.metis {
+    color: #0980D3;
+}
+
+.subWelcomeText {
+    font-size: 20px;
+    margin-top: 0px;
+}
+
+.logo {
+    padding-top: 35px;
+}
+
+.logoImage {
+    width: 135px;
+    height: auto;
+}
+
+/* Middle Webpage Section */
+.middleSection {
+    font-size: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-bottom: 40px;
+}
+
+.middleTopSection {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    width: 450px;
+}
+
+.computerImage {
+    width: 40px;
+    height: auto;
+}
+
+.middleBottomSection {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    width: 550px;
+}
+
+.pinkTreeImage {
+    width: 40px;
+    height: auto;
+}
+
+/* Bottom Webpage Section */
+.bottomSection {
+    display: flex;
+    flex-direction: column;
+    width: 230px;
+    gap: 100px;
+}
+
+.beginButton {
+   height: 50px;
+   border-radius: 20px;
+   background-color: #0980D3;
+   color: white;
+   border-width: 0px;
+   font-size: 23px;
+}
+
+.beginButton:hover {
+    background-color: #71afdc;
+    cursor: pointer;
+}
+
+.footer {
+    color: #f2efef;
+}
+
+/* Right Webpage Section */
+.rightSection {
+    flex: 1;
+    clip-path: polygon(20% 0, 100% 0%, 100% 100%, 0 100%);
+    background-color: #a7cfec;
+    height: auto;
+}
+
+.headerSection {
+    display: flex;
+    padding-top: 40px;
+    justify-content: space-evenly;
+    background-color: #a7cfec;
+    padding-left: 120px;
+}
+
+.signUp {
+    border-width: 0px;
+    background-color: #a7cfec;
+    font-size: 20px;
+}
+
+.signUp:hover {
+    cursor: pointer;
+}
+
+.login {
+    border-width: 0px;
+    background-color: #a7cfec;
+    font-size: 20px;
+}
+
+.login:hover {
+    cursor: pointer;
+}
