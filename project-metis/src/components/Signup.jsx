@@ -19,7 +19,7 @@ const Signup = () => {
         
         <div className="signupbox">
             <div className='topSection'>
-                <h2>Login</h2>
+                <h2>Sign Up</h2>
 
                 <div className="inputs">
                     <div className='uInput'>
@@ -44,7 +44,7 @@ const Signup = () => {
             <hr />
 
             <div className='bottomSection'>
-                <button>Signup with Google</button>
+                <button>Sign in with Google</button>
             </div>
 
         </div>
