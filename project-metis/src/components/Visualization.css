@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans&display=swap');
+* {
+    color: black;
+    font-family: "Instrument Sans", serif;
+    font-weight: 600;
+    margin: 0;
+}
+
+.visualization-page{
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: flex;
+    flex-direction: row;
+    width: auto;
+    position: static;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px;
+    background-color: #f3f3f4;
+}
+.sidebar-icon{
+    width: 25px;
+    height: 25px;
+    position: fixed;
+    top: 27px;
+    left: 10px;
+    background-color: transparent;
+}
+.Metis {
+    color: #0980D3;
+    font-size: 45px;
+    background-color: transparent;
+}
+.logoImage {
+    width: 100px;
+    height: auto;
+    background-color: transparent;
+}
+.logout{
+    background-color: transparent;
+    border-color: transparent;
+    font-size: 20px;
+    position: fixed;
+    top: 25px;
+    right: 10px;
+}
+.logout:hover{
+    color: #0980D3;
+}
+
+
+.courses{
+    position: relative;
+}
