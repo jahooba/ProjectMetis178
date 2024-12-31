@@ -1,12 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans&display=swap');
-* {
+.main {
     color: black;
     font-family: "Instrument Sans", serif;
     font-weight: 600;
     margin: 0;
 }
 
-.visualization-page{
+.visualizationPage{
     display: flex;
     flex-direction: column;
 }
@@ -21,7 +21,7 @@
     padding: 10px;
     background-color: #f3f3f4;
 }
-.sidebar-icon{
+.sidebarIcon{
     width: 25px;
     height: 25px;
     position: fixed;
