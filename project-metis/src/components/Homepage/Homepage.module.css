@@ -1,4 +1,4 @@
-* {
+.main {
     color: black;
     background-color: #FFFF;
     font-family: "Instrument Sans", serif;
@@ -100,6 +100,7 @@
    color: white;
    border-width: 0px;
    font-size: 23px;
+   width: 200px;
 }
 
 .beginButton:hover {
@@ -131,6 +132,7 @@
     border-width: 0px;
     background-color: #a7cfec;
     font-size: 20px;
+    font-weight: 600;
 }
 
 .signUp:hover {
@@ -141,6 +143,7 @@
     border-width: 0px;
     background-color: #a7cfec;
     font-size: 20px;
+    font-weight: 600;
 }
 
 .login:hover {
