@@ -1,6 +1,7 @@
 import logo from '../../assets/homepageAssets/logo.png';
 import computer from '../../assets/homepageAssets/computer.png';
 import pinkTree from '../../assets/homepageAssets/pink-tree.png';
+
 import { Link } from 'react-router-dom';
 
 import styles from './Homepage.module.css'
@@ -56,6 +57,7 @@ const Homepage = () => {
                 <Link to="/signup"><button className={styles.signUp}>Sign Up</button></Link>
                 <Link to="/login"><button className={styles.login}>Login</button></Link>
             </div>
+            <div className={styles.colorOverlay}></div>
         </div>
     </div>
     
