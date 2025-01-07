@@ -118,19 +118,23 @@
     clip-path: polygon(20% 0, 100% 0%, 100% 100%, 0 100%);
     background-color: #a7cfec;
     height: auto;
+    background-image: url(../../assets/homepageAssets/tree.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: -250px 62px;
 }
 
 .headerSection {
     display: flex;
     padding-top: 40px;
     justify-content: space-evenly;
-    background-color: #a7cfec;
+    background-color: #bfddf6;
     padding-left: 120px;
 }
 
 .signUp {
     border-width: 0px;
-    background-color: #a7cfec;
+    background-color: #bfddf6;
     font-size: 20px;
     font-weight: 600;
 }
@@ -141,11 +145,18 @@
 
 .login {
     border-width: 0px;
-    background-color: #a7cfec;
+    background-color: #bfddf6;
     font-size: 20px;
     font-weight: 600;
 }
 
 .login:hover {
     cursor: pointer;
+}
+
+.colorOverlay {
+    background-color: #7ebeec;
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
 }
