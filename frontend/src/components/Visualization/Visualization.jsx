@@ -1,5 +1,8 @@
 import logo from '../../assets/homepageAssets/logo.png';
 import sidebarIcon from '../../assets/visualizationAssets/sidebar-icon.png'
+import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
+import { MainContainer, ChatContainer, MessageList, Message, MessageInput, TypingIndicator } from '@chatscope/chat-ui-kit-react'
+import { useState } from 'react';
 
 import { Link } from 'react-router-dom';
 
@@ -7,19 +10,58 @@ import { Link } from 'react-router-dom';
 import styles from './Visualization.module.css'
 
 const Visualization = () => {
+  const [chatVisible, setChatVisible] = useState(false);
+
+  const toggleChat = () => {
+    setChatVisible(!chatVisible);
+  };
+
+  const [typing, setTyping] = useState(false);
+
+  const [messages, setMessages] = useState([
+    {
+      message: "Hello, I am Metis!!!",
+      sender: "Metis",
+      direction: "incoming"
+    }
+  ])
+
+  const handleSend = async (message) => {
+    const newMessage = {
+      message: message,
+      sender: "user",
+      direction: "outgoing"
+    }
+    const newMessages = [...messages, newMessage];
+
+    setMessages(newMessages);
+
+    setTyping(true);
+  }
+
   return (
     <div className={styles.main}>
         <div className={styles.visualizationPage}>
 
             <div className={styles.header}>
-                <img src={sidebarIcon} alt='sidebar icon' className={styles.sidebarIcon}/>
+                <button className={styles.sideBarButton} onClick={toggleChat}><img src={sidebarIcon} alt='sidebar icon'className={styles.sidebarIcon}/></button>
                 <span className={styles.Metis}>Metis</span>
                 <img src={logo} alt='Metis Logo' className={styles.logoImage}/>
-                <Link to="/login"><button className={styles.logout}>Logout</button></Link>
+                <Link to="/"><button className={styles.logout}>Logout</button></Link>
             </div>
 
-            <div className={styles.courses}>
-                <p>Courses</p>
+            <div className={`${styles.sideBar} ${chatVisible ? styles.sideBarOpen : styles.sideBarClosed}`}>
+              <MainContainer>
+                <ChatContainer>
+                  <MessageList typingIndicator={typing ? <TypingIndicator content="Metis is typing" /> : null}>
+                      {messages.map((message, i) => {
+                        return <Message key={i} model={message}/>
+                      })}
+                  </MessageList>
+                  <MessageInput placeholder='Type message here' onSend={handleSend}/>
+                </ChatContainer>
+              </MainContainer>
+
             </div>
 
         </div>

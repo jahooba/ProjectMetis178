@@ -14,8 +14,8 @@
 .header {
     display: flex;
     flex-direction: row;
-    width: auto;
-    position: static;
+    width: 100%;
+    position: fixed;
     justify-content: center;
     gap: 20px;
     padding: 10px;
@@ -54,4 +54,36 @@
 
 .courses{
     position: relative;
+}
+
+.sideBar {
+    position: fixed;
+    top: 90px;
+    border: 1px solid #5E6870;
+    width: 400px;
+    height: 85%;
+    transition: transform 1s ease-in-out;
+}
+
+.sideBarButton {
+    width: 25px;
+    height: 25px;
+    position: fixed;
+    top: 27px;
+    left: 10px;
+    border: none;
+}
+
+.sideBarButton:hover {
+    cursor: pointer;
+    background-color: #84929e;
+}
+  
+.sideBarOpen {
+    transform: translateX(0); 
+}
+  
+.sideBarClosed {
+    transform: translateX(-102%);
+    pointer-events: none;
 }
