@@ -42,19 +42,10 @@ const Visualization = () => {
 
     setTyping(true);
 
-
-
-    /* const response = await ollama.chat({
-    model: 'llama3.2:1b',
-    messages: [{ role: 'user', content: newMessage.message }],
-    })
-
-    console.log(response); //llama response */
-
     // Send the user's message to Ollama and get a response
     const response = await ollama.chat({
       model: 'llama3.2:1b',
-      messages: [{ role: 'user', content: newMessage.message }],
+      messages: [{role:'system', content:"I am an imaginary person named Metis, acting as a helper, like an advisor, for UCR BCOE students."}, { role: 'user', content: newMessage.message }],
     });
 
 
@@ -64,7 +55,6 @@ const Visualization = () => {
       sender: "Metis",
       direction: "incoming"
     };
-    console.log("Response Content Type:", typeof response.message.content, response.message.content);
 
     // Append the bot's response to the messages
     console.log(response);
