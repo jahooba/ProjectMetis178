@@ -7,6 +7,7 @@ require("dotenv").config();
 
 // Add authentication routes
 const authRoutes = require('./routes/authRoute.js');
+const courseRoutes = require('./routes/courseRoute.js');
 
 // Express app/instance
 const app = express();
@@ -23,7 +24,8 @@ mongoose.connect(process.env.MONGO_URL)
 
 
 app.use('/', authRoutes)
-
+app.use('/api', courseRoutes);
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
 // listen for requests
 app.listen(PORT, () => {

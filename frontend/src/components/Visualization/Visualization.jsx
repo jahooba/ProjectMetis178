@@ -4,6 +4,8 @@ import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
 import { MainContainer, ChatContainer, MessageList, Message, MessageInput, TypingIndicator } from '@chatscope/chat-ui-kit-react'
 import { useState } from 'react';
 
+import CourseTree from './CourseTree';
+
 import { Link } from 'react-router-dom';
 
 
@@ -63,7 +65,10 @@ const Visualization = () => {
               </MainContainer>
 
             </div>
-
+            
+            <div className='content'>
+              <CourseTree/>
+            </div>
         </div>
     </div>
   )
