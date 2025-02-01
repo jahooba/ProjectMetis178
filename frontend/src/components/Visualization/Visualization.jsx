@@ -6,6 +6,8 @@ import { useState } from 'react';
 //import ollama from 'ollama'
 import { Ollama } from 'ollama'
 
+import CourseTree from './CourseTree';
+
 import { Link } from 'react-router-dom';
 
 
@@ -88,7 +90,10 @@ const Visualization = () => {
               </MainContainer>
 
             </div>
-
+            
+            <div className='content'>
+              <CourseTree/>
+            </div>
         </div>
     </div>
   )
