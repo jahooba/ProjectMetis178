@@ -5,6 +5,8 @@ import { MainContainer, ChatContainer, MessageList, Message, MessageInput, Typin
 import { useState } from 'react';
 import answer from '../../../../backend/API/api'
 
+import CourseTree from './CourseTree';
+
 import { Link } from 'react-router-dom';
 
 
@@ -82,7 +84,10 @@ const Visualization = () => {
               </MainContainer>
 
             </div>
-
+            
+            <div className='content'>
+              <CourseTree/>
+            </div>
         </div>
     </div>
   )
