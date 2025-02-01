@@ -3,6 +3,8 @@ import sidebarIcon from '../../assets/visualizationAssets/sidebar-icon.png'
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
 import { MainContainer, ChatContainer, MessageList, Message, MessageInput, TypingIndicator } from '@chatscope/chat-ui-kit-react'
 import { useState } from 'react';
+//import ollama from 'ollama'
+import { Ollama } from 'ollama'
 
 import CourseTree from './CourseTree';
 
@@ -28,6 +30,8 @@ const Visualization = () => {
     }
   ])
 
+  const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
+
   const handleSend = async (message) => {
     const newMessage = {
       message: message,
@@ -39,7 +43,28 @@ const Visualization = () => {
     setMessages(newMessages);
 
     setTyping(true);
-  }
+
+    // Send the user's message to Ollama and get a response
+    const response = await ollama.chat({
+      model: 'llama3.2:1b',
+      messages: [{role:'system', content:"I am an imaginary person named Metis, acting as a helper, like an advisor, for UCR BCOE students."}, { role: 'user', content: newMessage.message }],
+    });
+
+
+    // Assuming response contains a 'content' field with the bot's reply
+    const botMessage = {
+      message: response.message.content,
+      sender: "Metis",
+      direction: "incoming"
+    };
+
+    // Append the bot's response to the messages
+    console.log(response);
+    setMessages((prevMessages) => [...prevMessages, botMessage]);
+    setTyping(false);
+    
+  };
+
 
   return (
     <div className={styles.main}>
