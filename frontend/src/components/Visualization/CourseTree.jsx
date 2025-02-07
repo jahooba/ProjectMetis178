@@ -16,7 +16,6 @@ const CourseTree = () => {
 
     setLoading(true);
     setError('');
-
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/courses?name=${encodeURIComponent(courseName)}`, {withCredentials: true});
       

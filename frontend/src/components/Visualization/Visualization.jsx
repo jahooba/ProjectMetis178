@@ -26,6 +26,11 @@ const Visualization = () => {
       message: "Hello, I am Metis!!!",
       sender: "Metis",
       direction: "incoming"
+    },
+    {
+      message: "Please enter your school year and quarter. (Ex: I am a first year and it is fall quarter.)",
+      sender: "Metis",
+      direction: "incoming"
     }
   ])
 

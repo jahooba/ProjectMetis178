@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+
+
 const nestedLogicSchema = new mongoose.Schema({
     type: {
         type: String,
@@ -83,7 +85,7 @@ const courseSchema = new mongoose.Schema({
             default: []
         }
     ]
-});
+}, {collection: 'reference_graph'});
 
 //courseSchema.index({courseID: 1});  // index for frequently searched field
 
