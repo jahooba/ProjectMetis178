@@ -4,7 +4,9 @@ import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
 import { MainContainer, ChatContainer, MessageList, Message, MessageInput, TypingIndicator } from '@chatscope/chat-ui-kit-react'
 import { useState } from 'react';
 //import ollama from 'ollama'
-import { Ollama } from 'ollama'
+import { Ollama } from 'ollama';
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
 
 import CourseTree from './CourseTree';
 
@@ -29,6 +31,11 @@ const Visualization = () => {
       direction: "incoming"
     }
   ])
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [prereqData, setPrereqData] = useState([]);  // Store prereq data globally
+
 
   const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
 
@@ -65,6 +72,12 @@ const Visualization = () => {
     
   };
 
+  const handleShowModal = (course) => {
+    console.log("Opening modal with course data:", course);
+    setSelectedCourse(course);
+    setShowModal(true);
+  };
+
 
   return (
     <div className={styles.main}>
@@ -92,9 +105,30 @@ const Visualization = () => {
             </div>
             
             <div className='content'>
-              <CourseTree/>
+              <CourseTree onNodeRightClick={handleShowModal} setPrereqData={setPrereqData} prereqData={prereqData}/>
             </div>
         </div>
+        <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{selectedCourse?.courseID || "Course Details"}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p><strong>Title:</strong> {selectedCourse?.title}</p>
+          <p><strong>Units:</strong> {selectedCourse?.units}</p>
+          <p><strong>Description:</strong> {selectedCourse?.description}</p>
+          <p><strong>Prerequisites:</strong> {selectedCourse?.PREREQS 
+            ? selectedCourse.PREREQS.map(prereq => 
+                prereq.courses.map(course => {
+                  return course.prereqName || "Unknown Course";
+                }).join(" OR ")
+              ).join(" AND ")
+            : "None"}
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   )
 }

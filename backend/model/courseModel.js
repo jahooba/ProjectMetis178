@@ -11,6 +11,7 @@ const nestedLogicSchema = new mongoose.Schema({
 
 const singleCourseSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.Mixed,
+    prereqName: { type: String },
     concurrent: {
         type: Boolean,
         default: false
@@ -83,7 +84,7 @@ const courseSchema = new mongoose.Schema({
             default: []
         }
     ]
-});
+}, {collection: 'reference_graph'});
 
 //courseSchema.index({courseID: 1});  // index for frequently searched field
 
