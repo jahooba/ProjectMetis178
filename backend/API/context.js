@@ -1,3 +1,6 @@
+
+//just overall class data
+//create a db for requirements
 export const data = [
 
     {
@@ -21,6 +24,7 @@ export const data = [
     }
 ]
 
+//can be the format for requirements of each major
 export const requirements = [
     {
         lowerDivs: [
@@ -30,10 +34,119 @@ export const requirements = [
             "8+ units in BIEN010, EE030A & 30LA, EE 005, EE 016, EE20A, ENSC 001, ENSC 002, MATH 010B, MATH 046, ME 002, ME 005, ME 018A, ME 018B, ME 009, ME 010 "],
         lowerDivUnits: 65,
         upperDivUnits: 79,
-        upperDivs: [
-            "ENGR 101-I", "CS 100", "CS 141", "CS 150", "CS 152", "CS 153", 
-            "CS 161", "CS 179 (E-Z)", "CS 120A/EE 120A", "CS 111", "ENGR 180W", "STAT 155",
-            "32+ units of technical electives to be chosen from an approved list of courses which currently includes CS 105, CS 108, CS 110, CS 120B/EE 120B, CS 122A, CS 122B, CS 130, CS 131, CS 133, CS 135, CS 142, CS 144, CS 145, CS 147, CS 160, CS 162, CS 164, CS 165, CS 166, CS 167, CS/EE 168, CS 169, CS 170, CS 171, CS 172, CS 173, CS 175, CS 177, CS 178B, CS 179 (E-Z) (4 units maximum), CS 180, CS 181, CS 182, CS 183, CS 193 (4 units maximum), MATH 120, MATH 126, MATH 135A, MATH 135B, PHIL 124. The technical electives selected must be distinct from those used to satisfy the requirements specified in 2.a)–f) above, with at least half of the (16) units selected from Computer Science courses"
-        ]
+        upperDivs: [{
+            req: 'a',
+            type: "&&",
+            courses:[{
+                    id_:"ENGR 101-I"
+                }],
+            },
+            {
+            req:'b',
+            type: "&&",
+            courses: [{
+                    id_:"CS 100",
+                },
+                { 
+                    id_: "CS 141",
+                },
+                {
+                    id_: "CS 150",
+                },
+                {
+                    id_: "CS 152",
+                },
+                {
+                    id_: "CS 153",
+                },
+                {
+                    id_: "CS 161",
+                },
+                {
+                    type: "||",
+                    courses: [{
+                        id_: "CS 179E",
+                    },
+                    {
+                        id_: "CS 179F"
+                    },
+                    {
+                        id_: "CS 179G"
+                    },
+                    {
+                        id_: "CS 179I"
+                    },
+                    {
+                        id_: "CS 179J"
+                    },
+                    {
+                        id_: "CS 179K"
+                    },
+                    {
+                        id_: "CS 179M"
+                    },
+                    {
+                        id_: "CS 179N"
+                    },
+                    {
+                        type: "&&",
+                        courses: [{
+                            id_: "CS 178A"
+                        },
+                        {
+                            id_: "CS 178B"
+                        }],
+                    }],
+                }],
+            },
+            {
+            req: "c",
+            type: "||",
+            courses:[{
+                    id_: "CS 120A",
+                },
+                {
+                    id_: "EE 120A",
+                }],
+            },
+            {
+            req: "d",
+            courses: [{
+                id_:"CS 111"
+                }]
+            },
+            {
+            req: "e",
+            courses: [{
+                id_:"ENGR 180W"
+            }]
+            }, 
+            {
+            req:"f",
+            courses: [{
+                id_:"STAT 155"
+            }],
+            },
+            {
+            req: "g",
+            type: "||" [{
+                units: 32,
+                courses: [{
+                        id_: "CS 105",
+                        maxUnits: "N/a"
+                    },
+                    { 
+                        id_:"CS 108",
+
+                     },
+                    "CS 110", "CS 120B/EE 120B", "CS 122A", "CS 122B", "CS 130", "CS 131", "CS 133", "CS 135",
+                    "CS 142", "CS 144", "CS 145", "CS 147", "CS 160", "CS 162", "CS 164", "CS 165", "CS 166", "CS 167", "CS/EE 168",
+                    "CS 169", "CS 170", "CS 171", "CS 172", "CS 173", "CS 175", "CS 177", "CS 178B", "CS 179 (E-Z) (4 units maximum)",
+                    "CS 180", "CS 181", "CS 182", "CS 183", "CS 193 (4 units maximum)", "MATH 120", "MATH 126", "MATH 135A", "MATH 135B",
+                    "PHIL 124"
+                }],
+                info: "The technical electives selected must be distinct from those used to satisfy the requirements specified in 2.a)–f) above, with at least half of the (16) units selected from Computer Science courses",
+            }],
+        },
     }
 ]
