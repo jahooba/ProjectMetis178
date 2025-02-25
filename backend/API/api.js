@@ -47,7 +47,7 @@ async function pullOllamaModel(modelName) {
 }
 
 // Replace 'llama3' with the model you want to pull
-pullOllamaModel(modelname);
+//pullOllamaModel(modelname);
 
 
 async function fetchAllCourses() {
@@ -78,7 +78,8 @@ async function addUserInfo() {
 
 //modify better
 function prompt(question) {
-  return `classify course name for: ${question} \n ============ \n Give information pertaining to it`
+  return `classify topic for: ${question} from options: 1) 
+  Add interests, 2) Reccomend course plan/ classes, 3) Information for course, (course, type of info) 4. Other ${question} \n ============ \n Give information pertaining to it`
 }
 
 const messages = oldmessages;
@@ -116,7 +117,7 @@ async function answer(input) {
     const formattedCourses = JSON.stringify(courses, null, 2);
     const parsedCourses = JSON.parse(formattedCourses);
     console.log("Parsed Course Data:", parsedCourses);
-    const embeddings = await generateEmbeds(courses);
+    //const embeddings = await generateEmbeds(courses);
     // Log courses
     //console.log("Formatted Course Data:", formattedCourses);
     
@@ -125,13 +126,14 @@ async function answer(input) {
     messages.push({
       role: 'system',
       content: 
-        `1. Here is the course data:\n${parsedCourses}. Use only data from the provided list of courses.
+        `1. Here is the course data:\n${parsedCourses}. Use only data from the provided course data.
         2. Keep responses short.`
     });
     messages.push({ role: 'system', content: 'Given this JSON formated course data, with structure {"labHrs", "discHrs", "studyHrs", "PREREQS","flatPrereqs", "courseID", "description", "lectHrs", "title", "units"}\n' + formattedCourses},
     { role: 'user', content: 'Here are the available courses: \n' + {parsedCourses} + '.If a student has taken MATH 003 and CS 010A, what courses should they take next?' });
 
     // Add user input
+    //messages.push({role: 'system', content: prompt(input)});
     messages.push({ role: 'user', content: input });
 
     // Generate AI response
