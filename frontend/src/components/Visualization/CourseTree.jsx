@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios'
 import * as d3 from 'd3';
 
-const CourseTree = ({ onNodeRightClick, setPrereqData, prereqData }) => {
+const CourseTree = ({ onNodeRightClick, setPrereqData, prereqData, currentUserId, completedCourses }) => {
   const [courseName, setCourseName] = useState('');
   const [courseData, setCourseData] = useState(null);
   //const [prereqData, setPrereqData] = useState(null);
@@ -51,20 +51,23 @@ const CourseTree = ({ onNodeRightClick, setPrereqData, prereqData }) => {
     const root = d3.hierarchy(PC_course, d => d.children || []);
     treeLayout(root);
 
-    let selectedNodes = new Set();
+    let selectedNodes = new Set(completedCourses || []);
 
     const extractPrereqPaths = (prereq) => {
       let paths = [];
   
       prereq.courses.forEach(course => {
           if (course.type) {
-              // Handle nested logical structures (e.g., && or || inside PREREQS)
+              // Recursively extract nested prerequisite logic
               const nestedPaths = extractPrereqPaths(course);
-              paths.push(nestedPaths);
+              paths = paths.concat(nestedPaths);  // Flatten result
           } else {
-              // Extract course IDs (handle different formats)
-              const courseId = course._id?.$oid || course._id || course.courseID || course.name || course;
-              paths.push([courseId]); // Store each prerequisite path as an array
+              // Extract the correct course ID (handle both ObjectIds and strings)
+              const courseId = course.prereqName || course.courseID || course.name;
+              
+              if (courseId) {
+                  paths.push(courseId);  // Ensure we're only adding valid course IDs
+              }
           }
       });
   
@@ -87,29 +90,36 @@ const CourseTree = ({ onNodeRightClick, setPrereqData, prereqData }) => {
       let prereqMet = false;
       let prereqExists = false;
   
+      // Build a course map for easy lookup
+      const courseMap = {};
+      RG_prereqData.forEach(course => {
+          courseMap[course._id?.$oid] = course.courseID;
+      });
+  
       targetCourse.PREREQS.forEach(prereq => {
           console.log(`Checking prereq object:`, prereq);
           prereqExists = true;
   
-          const prereqPaths = extractPrereqPaths(prereq);
-          console.log(`Extracted prerequisite paths for ${targetId}:`, prereqPaths);
+          let prereqPaths = extractPrereqPaths(prereq);
+  
+          // Normalize extracted prerequisite paths to match selected nodes
+          let normalizedPrereqPaths = prereqPaths.map(courseId => courseMap[courseId] || courseId);
+          
+          console.log(`Normalized prerequisite paths for ${targetId}:`, normalizedPrereqPaths);
+          console.log(`Extracted prerequisite paths for ${targetId}:`, JSON.stringify(prereqPaths, null, 2));
+
           console.log(`Current selected nodes:`, [...selectedNodes]);
   
           if (prereq.type === "&&") {
-              // Ensure at least ONE valid AND path is fully met
-              const allPathsMet = prereqPaths.some(path =>
-                  path.every(courseId => selectedNodes.has(courseId))
-              );
+              // Ensure all AND conditions are fully met
+              const allPathsMet = normalizedPrereqPaths.every(courseId => selectedNodes.has(courseId));
               if (allPathsMet) {
                   console.log(`All AND conditions met for ${targetId}`);
                   prereqMet = true;
               }
-          } 
-          else if (prereq.type === "||") {
-              // Ensure at least ONE valid OR path is met
-              const somePathMet = prereqPaths.some(path =>
-                  path.some(courseId => selectedNodes.has(courseId))
-              );
+          } else if (prereq.type === "||") {
+              // Ensure at least one OR condition is met
+              const somePathMet = normalizedPrereqPaths.some(courseId => selectedNodes.has(courseId));
               if (somePathMet) {
                   console.log(`At least one OR condition met for ${targetId}`);
                   prereqMet = true;
@@ -122,17 +132,21 @@ const CourseTree = ({ onNodeRightClick, setPrereqData, prereqData }) => {
       if (prereqMet) return "#33ff33";  // Green - Prerequisite met
       if (prereqExists) return "#f5ff33";  // Yellow - One node selected, prerequisite not fully met
       return "#ff3333";  // Red - Node selected, but no prerequisite node clicked
-  };  
+    };
+  
+  
 
 
-const updateLineColors = () => {
-  console.log("Updating line colors...");
-  svg.selectAll(".link")
-      .attr("stroke", d => {
-          console.log(`Checking edge: ${d.source.data.name} → ${d.target.data.name}`);
-          return determineLineColor(d);
-      });
-};
+  const updateLineColors = () => {
+    console.log("Updating line colors...");
+    svg.selectAll(".link")
+        .transition().duration(200)  // Ensure smooth updates
+        .attr("stroke", d => {
+            console.log(`Checking edge: ${d.source.data.name} → ${d.target.data.name}`);
+            return determineLineColor(d);
+        });
+  };
+  
 
 
   // Render links
@@ -160,7 +174,7 @@ const updateLineColors = () => {
     .attr("cx", d => d.y)
     .attr("cy", d => d.x)
     .attr("r", 10)
-    .attr("fill", "#69b3a2")
+    .attr("fill", d => selectedNodes.has(d.data.name) ? "#ff5733" : "#69b3a2")
     .on("click", function(event, d) {
       if (!d.data || !d.data.name) {
           console.error("Node clicked but name is missing:", d);
@@ -172,18 +186,39 @@ const updateLineColors = () => {
       const nodeId = d.data.name; 
   
       if (!nodeId) return; // Prevent adding undefined values
-  
+      
+      let action = '';
       if (selectedNodes.has(nodeId)) {
           selectedNodes.delete(nodeId);
           d3.select(this).attr("fill", "#69b3a2"); // Reset color when deselected
+          action = 'remove';
       } else {
           selectedNodes.add(nodeId);
           d3.select(this).attr("fill", "#ff5733"); // Highlight selected node
+          action = 'add';
       }
   
       console.log("Selected Nodes:", [...selectedNodes]); 
-      updateLineColors();
-  })
+      
+      if (currentUserId) {
+        // Immediately trigger the API call to update the user's completed courses
+        axios.post(`${import.meta.env.VITE_API_URL}/api/users/updateCompleted`, {
+          userId: currentUserId,  // currentUserId should be defined (e.g., passed as a prop)
+          course: nodeId,
+          action: action
+        }, { withCredentials: true })
+        .then(response => {
+          console.log("User completed courses updated:", response.data);
+        })
+        .catch(error => {
+          console.error("Error updating completed courses:", error);
+        });
+      } else {
+        console.warn("No current user ID found. User must be logged in.");
+      }
+
+      setTimeout(updateLineColors, 50); // Ensure the UI updates
+  })  
   .on("contextmenu", async function (event, d) {
     event.preventDefault();  // Prevent default right-click menu
   

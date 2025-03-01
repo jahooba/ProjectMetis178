@@ -8,15 +8,23 @@ import { Ollama } from 'ollama';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 
+import { useContext } from 'react';
+import { UserContext } from '../../context/UserContext';
 import CourseTree from './CourseTree';
 
 import { Link } from 'react-router-dom';
 
 
 import styles from './Visualization.module.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Visualization = () => {
   const [chatVisible, setChatVisible] = useState(false);
+  const { user } = useContext(UserContext);
+  console.log("User from context:", user);
+
+  const currentUserId = user?._id;
+  const completedCourses = user?.completedCourses;
 
   const toggleChat = () => {
     setChatVisible(!chatVisible);
@@ -53,7 +61,7 @@ const Visualization = () => {
 
     // Send the user's message to Ollama and get a response
     const response = await ollama.chat({
-      model: 'llama3.2:1b',
+      model: 'llama3.2',
       messages: [{role:'system', content:"I am an imaginary person named Metis, acting as a helper, like an advisor, for UCR BCOE students."}, { role: 'user', content: newMessage.message }],
     });
 
@@ -105,30 +113,36 @@ const Visualization = () => {
             </div>
             
             <div className='content'>
-              <CourseTree onNodeRightClick={handleShowModal} setPrereqData={setPrereqData} prereqData={prereqData}/>
+              <CourseTree 
+                onNodeRightClick={handleShowModal} 
+                setPrereqData={setPrereqData} 
+                prereqData={prereqData} 
+                currentUserId={currentUserId}
+                completedCourses={completedCourses}
+                />
             </div>
         </div>
-        <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>{selectedCourse?.courseID || "Course Details"}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p><strong>Title:</strong> {selectedCourse?.title}</p>
-          <p><strong>Units:</strong> {selectedCourse?.units}</p>
-          <p><strong>Description:</strong> {selectedCourse?.description}</p>
-          <p><strong>Prerequisites:</strong> {selectedCourse?.PREREQS 
-            ? selectedCourse.PREREQS.map(prereq => 
-                prereq.courses.map(course => {
-                  return course.prereqName || "Unknown Course";
-                }).join(" OR ")
-              ).join(" AND ")
-            : "None"}
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
-        </Modal.Footer>
-      </Modal>
+        <Modal className={styles.courseModal} show={showModal} onHide={() => setShowModal(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>{selectedCourse?.courseID || "Course Details"}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p><strong>Title:</strong> {selectedCourse?.title}</p>
+            <p><strong>Units:</strong> {selectedCourse?.units}</p>
+            <p><strong>Description:</strong> {selectedCourse?.description}</p>
+            <p><strong>Prerequisites:</strong> {selectedCourse?.PREREQS 
+              ? selectedCourse.PREREQS.map(prereq => 
+                  prereq.courses.map(course => {
+                    return course.prereqName || "Unknown Course";
+                  }).join(" OR ")
+                ).join(" AND ")
+              : "None"}
+            </p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
+          </Modal.Footer>
+        </Modal>
     </div>
   )
 }

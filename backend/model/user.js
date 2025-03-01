@@ -11,6 +11,10 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 8,
     },
+    completedCourses: {
+        type: [String],
+        default: []
+    }
 });
 
 const User = mongoose.model('User', userSchema);

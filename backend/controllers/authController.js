@@ -55,9 +55,13 @@ const login = async (req, res) => {
         if (doesExist) {
             jwt.sign({email: user.email, id: user._id}, process.env.JWT_SECRET, {}, (err, token) => {
                 if (err) throw err;
-                res.cookie('token', token).json(user)
+                res.cookie('token', token).json({
+                    _id: user._id,
+                    email: user.email,
+                    completedCourses: user.completedCourses || []
+                });
             })
-            return res.status(200).json({ message: "Login successful" });
+            //return res.status(200).json({ message: "Login successful" });
         } 
 
         else {
