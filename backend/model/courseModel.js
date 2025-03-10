@@ -86,7 +86,7 @@ const courseSchema = new mongoose.Schema({
             default: []
         }
     ]
-}, {collection: 'reference_graph'});
+}, {collection: 'courses'});
 
 //courseSchema.index({courseID: 1});  // index for frequently searched field
 

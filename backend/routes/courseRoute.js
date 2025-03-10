@@ -30,6 +30,6 @@ router.use(
 
 router.get('/courses', getCourseTree);
 
-//router.get('/courses/all', getAllCourses);
+router.get('/courses/all', getAllCourses);
 
 module.exports = router;

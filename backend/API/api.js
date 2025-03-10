@@ -1,7 +1,9 @@
 import { Ollama } from 'ollama';
 import ollama from 'ollama';
-import {oldmessages} from './messages';
+import {oldmessages, schema} from './messages';
 import axios from 'axios';
+import { useContext } from 'react';
+import { UserContext } from '../../frontend/src/context/UserContext';
 //import tf from '@tensorflow/tfjs-node';
 
 const metis = new Ollama({ host: 'http://127.0.0.1:11434' });
@@ -106,9 +108,39 @@ async function generateEmbeds(input) {
       console.error('Error creating embedding:', error.response ? error.response.data : error.message);
   }
 }
+async function findCourse(course) {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/courses?name=${encodeURIComponent(courseName)}`, {withCredentials: true});
+    if (response.status === 200) {
+      console.log("Course found:", response.data);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      console.log("Course not found.");
+    } else {
+      console.error("API request failed:", error.message);
+    }
+  }
+}
 
+function updateUserCourses(completedCourses, currentUserId){
+  if (currentUserId) {
+    // Immediately trigger the API call to update the user's completed courses
+    for(const courseName of completedCourses) {
+        if(findCourse(courseName)) {
+          axios.post(`${import.meta.env.VITE_API_URL}/api/users/updateCompleted`, {        
+            userId: currentUserId,  // currentUserId should be defined (e.g., passed as a prop)
+            course: courseName,
+            action: add
+          }, { withCredentials: true })
+      }
+    }
+  }
+}
 
-async function answer(input) {
+async function answer(input, currentUserId, completedCourses) {
   try {
     // Fetch courses
     const courses = await fetchAllCourses();
@@ -128,91 +160,7 @@ async function answer(input) {
       role: 'system',
       content: 
         `1. For all queries, only use this course data:\n${parsedCourses}. Use only data from the provided course data.
-        2. This is the schema for the course data: [
-        const nestedLogicSchema = new mongoose.Schema({
-            type: {
-                type: String,
-                enum: ['&&', '||'],
-                required: true
-            },
-            courses: [{type: mongoose.Schema.Types.Mixed /* allows recursive nesting */}]
-        });
-        
-        const singleCourseSchema = new mongoose.Schema({
-            _id: mongoose.Schema.Types.Mixed,
-            concurrent: {
-                type: Boolean,
-                default: false
-            }
-        }, {_id: false /* prevents new Mongo ids */});
-        
-        const prereqSchema = new mongoose.Schema({
-            type: {
-                type: String,
-                enum: ['&&', '||'],
-                required: true
-            },
-            courses: [
-                singleCourseSchema,
-                nestedLogicSchema
-            ]
-        });
-        
-        const courseSchema = new mongoose.Schema({
-            courseID: {
-                type: String,
-                required: true,
-                unique: true,
-                match: /^[A-Z]{2,4} \d{3}[A-Z]?$/
-            },
-            title: {
-                type: String,
-                required: true,
-                unique: false
-            },
-            units: {
-                type: Number,
-                min: 0,
-                max: 12,
-                default: 0
-            },
-            lectHrs: {
-                type: Number,
-                min: 0,
-                max: 12,
-                default: 0
-            },
-            labHrs: {
-                type: Number,
-                min: 0,
-                max: 12,
-                default: 0
-            },
-            discHrs: {
-                type: Number,
-                min: 0,
-                max: 12,
-                default: 0
-            },
-            studyHrs: {
-                type: Number,
-                min: 0,
-                max: 12,
-                default: 0
-            },
-            PREREQS: [prereqSchema],
-            description: {
-                type: String,
-                required: true
-            },
-            flatPrereqs: [
-                {
-                    type: mongoose.Schema.Types.Mixed,
-                    required: false,
-                    default: []
-                }
-            ]
-        }, {collection: 'courses'});]
+        2. This is the schema for the course data: ${schema}
         3. Keep responses short.`
     });
     // Add user input
