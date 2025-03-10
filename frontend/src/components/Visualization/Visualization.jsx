@@ -40,7 +40,7 @@ const Visualization = () => {
       direction: "incoming"
     },
     {
-      message: "Please enter your school year and quarter. (Ex: I am a first year and it is fall quarter.)",
+      message: "Please enter your school year. (Ex: I am a first year.)",
       sender: "Metis",
       direction: "incoming"
     }
@@ -66,7 +66,7 @@ const Visualization = () => {
     setTyping(true);
 
     // Send the user's message to Ollama and get a response
-    const response = await answer(newMessage.message);
+    const response = await answer(newMessage.message, currentUserId, completedCourses);
     console.log(response.message.content);
     /* const response = await ollama.chat({
       model: 'llama3.2',

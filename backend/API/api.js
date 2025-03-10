@@ -2,8 +2,6 @@ import { Ollama } from 'ollama';
 import ollama from 'ollama';
 import {oldmessages, schema} from './messages';
 import axios from 'axios';
-import { useContext } from 'react';
-import { UserContext } from '../../frontend/src/context/UserContext';
 //import tf from '@tensorflow/tfjs-node';
 
 const metis = new Ollama({ host: 'http://127.0.0.1:11434' });
@@ -81,7 +79,7 @@ async function addUserInfo() {
 //modify better
 function prompt(question) {
   return `classify topic for: ${question} from options: 1) 
-  Add interests, 2) Reccomend course plan/ classes, 3) Information for course, 
+  Add user's interests, 2) Reccomend course plan/classes, 3) Information for course, 
   (course, type of info) from {course from provided course data, type from structure {"labHrs", "discHrs", "studyHrs", "PREREQS","flatPrereqs", "courseID", "description", "lectHrs", "title", "units"} } 4. Other`
 }
 

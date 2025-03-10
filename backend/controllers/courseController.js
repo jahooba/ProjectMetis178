@@ -59,4 +59,4 @@ const getCourseTree = async(req, res) => {
      }
  };
 
-module.exports = { getCourseTree };
+module.exports = { getCourseTree, getAllCourses };

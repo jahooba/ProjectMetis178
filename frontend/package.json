@@ -17,9 +17,11 @@
     "@tensorflow/tfjs-node": "^4.22.0",
     "@tensorflow/tfjs-node-gpu": "^4.22.0",
     "axios": "^1.7.9",
+    "bootstrap": "^5.3.3",
     "d3": "^7.9.0",
     "ollama": "^0.5.12",
     "react": "^18.3.1",
+    "react-bootstrap": "^2.10.9",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.5.1",
     "react-router-dom": "^7.0.2"
