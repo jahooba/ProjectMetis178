@@ -1,6 +1,6 @@
 const User = require('../model/user');
 
-const updateComplete = async (req, res) => {
+const updateCompletedCourses = async (req, res) => {
   const { userId, course, action } = req.body;
   
   if (!userId || !course || !action) {
@@ -38,5 +38,5 @@ const updateComplete = async (req, res) => {
 };
 
 module.exports = {
-  updateComplete,
+  updateCompletedCourses,
 };

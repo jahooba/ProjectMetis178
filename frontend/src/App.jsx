@@ -13,6 +13,8 @@ axios.defaults.baseURL = 'http://localhost:3000'
 axios.defaults.withCredentials = true
 
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { UserProvider } from './context/UserContext'
+import CourseTree from './components/Visualization/CourseTree'
 
 const router = createBrowserRouter([
   { path: "/", element: <Homepage /> },
@@ -25,8 +27,10 @@ function App() {
 
   return (
     <>
-      <Toaster position='bottom-right' toastOptions={{duration: 3000}}/>
-      <RouterProvider router={router} />
+      <UserProvider>
+        <Toaster position='bottom-right' toastOptions={{duration: 3000}}/>
+        <RouterProvider router={router} />
+      </UserProvider>
     </>
   )
 }

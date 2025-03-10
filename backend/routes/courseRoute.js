@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const PreprocessedCourse = require('../model/processedCourseModel');
 const router = express.Router();
-const {getCourseTree, getAllCourses} = require('../controllers/courseController');
+const {getCourseTree } = require('../controllers/courseController');
 
 router.use(
   cors({
@@ -30,6 +30,6 @@ router.use(
 
 router.get('/courses', getCourseTree);
 
-router.get('/courses/all', getAllCourses);
+//router.get('/courses/all', getAllCourses);
 
 module.exports = router;

@@ -61,7 +61,7 @@ const login = async (req, res) => {
                     completedCourses: user.completedCourses || []
                 });
             })
-            return res.status(200).json({ message: "Login successful" });
+            //return res.status(200).json({ message: "Login successful" });
         } 
 
         else {

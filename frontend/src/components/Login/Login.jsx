@@ -4,11 +4,14 @@ import { useState } from 'react'
 import axios from 'axios'
 import { toast } from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { UserContext } from '../../context/UserContext';
 
 import styles from './Login.module.css'
 
 const Login = () => {
     const navigate = useNavigate();
+    const { updateUser } = useContext(UserContext);
 
     const [data, setData] = useState({
         email: '',
@@ -26,6 +29,8 @@ const Login = () => {
             } 
             
             else {
+                console.log("Login Response Data: ", response.data);
+                updateUser(response.data);
                 setData({ email: '', password: '' });
                 toast.success('Login successful!');
                 navigate('/visual'); // Redirect after successful login

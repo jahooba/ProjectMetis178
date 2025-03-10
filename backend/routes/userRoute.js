@@ -9,6 +9,6 @@ router.use(cors({
 }));
 
 // POST endpoint to update a user's completed courses
-router.post('/users/update', updateComplete);
+router.post('/users/updateCompleted', updateCompletedCourses);
 
 module.exports = router;
