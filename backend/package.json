@@ -17,7 +17,8 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.3",
-    "ollama": "^0.5.12"
+    "ollama": "^0.5.12",
+    "openai": "^4.86.2"
   },
   "devDependencies": {
     "mockingoose": "^2.16.2",

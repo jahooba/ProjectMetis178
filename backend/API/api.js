@@ -54,7 +54,7 @@ async function fetchAllCourses() {
   try {
     console.log("✅ Connected to MongoDB");
     const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/courses/all`); // Ensure the API route is correct
-    //console.log("Fetched Course Data:", response.data); // Log the course data to the console
+    console.log("Fetched Course Data:", response.data); // Log the course data to the console
     return response.data;
   } catch (error) {
     console.error("Error fetching courses:", error);
@@ -79,7 +79,8 @@ async function addUserInfo() {
 //modify better
 function prompt(question) {
   return `classify topic for: ${question} from options: 1) 
-  Add interests, 2) Reccomend course plan/ classes, 3) Information for course, (course, type of info) 4. Other ${question} \n ============ \n Give information pertaining to it`
+  Add interests, 2) Reccomend course plan/ classes, 3) Information for course, 
+  (course, type of info) from {course from provided course data, type from structure {"labHrs", "discHrs", "studyHrs", "PREREQS","flatPrereqs", "courseID", "description", "lectHrs", "title", "units"} } 4. Other`
 }
 
 const messages = oldmessages;
@@ -91,7 +92,7 @@ async function generateEmbeds(input) {
       let courseEmbeddings = [];
       for (const course of input) {
         const textToEmbed = `${course.courseID}: ${course.description}`
-        //console.log("input: ", textToEmbed);
+        console.log("input: ", textToEmbed);
         const response = ollama.embed({
           model: embedname,
           input: textToEmbed
@@ -126,14 +127,98 @@ async function answer(input) {
     messages.push({
       role: 'system',
       content: 
-        `1. Here is the course data:\n${parsedCourses}. Use only data from the provided course data.
-        2. Keep responses short.`
+        `1. For all queries, only use this course data:\n${parsedCourses}. Use only data from the provided course data.
+        2. This is the schema for the course data: [
+        const nestedLogicSchema = new mongoose.Schema({
+            type: {
+                type: String,
+                enum: ['&&', '||'],
+                required: true
+            },
+            courses: [{type: mongoose.Schema.Types.Mixed /* allows recursive nesting */}]
+        });
+        
+        const singleCourseSchema = new mongoose.Schema({
+            _id: mongoose.Schema.Types.Mixed,
+            concurrent: {
+                type: Boolean,
+                default: false
+            }
+        }, {_id: false /* prevents new Mongo ids */});
+        
+        const prereqSchema = new mongoose.Schema({
+            type: {
+                type: String,
+                enum: ['&&', '||'],
+                required: true
+            },
+            courses: [
+                singleCourseSchema,
+                nestedLogicSchema
+            ]
+        });
+        
+        const courseSchema = new mongoose.Schema({
+            courseID: {
+                type: String,
+                required: true,
+                unique: true,
+                match: /^[A-Z]{2,4} \d{3}[A-Z]?$/
+            },
+            title: {
+                type: String,
+                required: true,
+                unique: false
+            },
+            units: {
+                type: Number,
+                min: 0,
+                max: 12,
+                default: 0
+            },
+            lectHrs: {
+                type: Number,
+                min: 0,
+                max: 12,
+                default: 0
+            },
+            labHrs: {
+                type: Number,
+                min: 0,
+                max: 12,
+                default: 0
+            },
+            discHrs: {
+                type: Number,
+                min: 0,
+                max: 12,
+                default: 0
+            },
+            studyHrs: {
+                type: Number,
+                min: 0,
+                max: 12,
+                default: 0
+            },
+            PREREQS: [prereqSchema],
+            description: {
+                type: String,
+                required: true
+            },
+            flatPrereqs: [
+                {
+                    type: mongoose.Schema.Types.Mixed,
+                    required: false,
+                    default: []
+                }
+            ]
+        }, {collection: 'courses'});]
+        3. Keep responses short.`
     });
-    messages.push({ role: 'system', content: 'Given this JSON formated course data, with structure {"labHrs", "discHrs", "studyHrs", "PREREQS","flatPrereqs", "courseID", "description", "lectHrs", "title", "units"}\n' + formattedCourses},
-    { role: 'user', content: 'Here are the available courses: \n' + {parsedCourses} + '.If a student has taken MATH 003 and CS 010A, what courses should they take next?' });
-
     // Add user input
-    //messages.push({role: 'system', content: prompt(input)});
+    messages.push({role: 'user', content: prompt(input)});
+    let inquiry = messages.slice(-1)[0];
+    console.log(inquiry.content);
     messages.push({ role: 'user', content: input });
 
     // Generate AI response
