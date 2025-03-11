@@ -28,7 +28,8 @@ const getCourseTree = async(req, res) => {
         };
         traverseTree(PC_course);
 
-        console.log("All course names to match in reference_graph:", [...allCourseNames]);
+        console.log("All course names to match in courses:", [...allCourseNames]);
+        // Change name
         const RG_prereqData = await Course.find(
             { courseID: { $in: Array.from(allCourseNames).map(name => new RegExp(`^${name}$`, "i")) } }, 
             "courseID PREREQS title units description"
