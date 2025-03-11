@@ -34,7 +34,7 @@ const Visualization = () => {
   //let embedname = "mxbai-embed-large"
   //pullOllamaModel(modelname);
   //pullOllamaModel(embedname);
-  let courseDB = fetchAllCourses;
+  //let courseDB = fetchAllCourses;
 
   const toggleChat = () => {
     setChatVisible(!chatVisible);

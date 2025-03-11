@@ -375,7 +375,7 @@ async function answer(input, currentUserId, completedCourses) {
       //let recommend = recommendCourses(formattedCourses, completedCourses);
       //console.log("Recommended:" ,recommend);
       //newPrompt = `choose the 3 or 4 courses from these ${recommend}`;
-      newPrompt = augment_prompt(input + "Only reccomend 3-4 courses. Prioritize courses whose PREREQS I have already taken (or have no PREREQS) which are also the most common PREREQS for other courses. Only respond with: \"I would recommend these courses. 1.courseID1, 2. courseID2, etc\"", newFormat, completedCourses);
+      newPrompt = augment_prompt(input + "Only reccomend 4-5 courses. Prioritize CS courses and courses whose PREREQS I have already taken (or have no PREREQS) which are also the most common PREREQS for other courses. Only respond with: \"I would recommend these courses. 1.courseID1, 2. courseID2, etc\"", newFormat, completedCourses);
     }
     else {
       newPrompt = augment_prompt(input, formattedCourses, completedCourses);
