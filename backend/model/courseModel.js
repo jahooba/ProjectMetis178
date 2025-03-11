@@ -50,7 +50,7 @@ const courseSchema = new mongoose.Schema({
         max: 12,
         default: 0
     },
-    lectHrs: {
+    /*lectHrs: {
         type: Number,
         min: 0,
         max: 12,
@@ -73,7 +73,7 @@ const courseSchema = new mongoose.Schema({
         min: 0,
         max: 12,
         default: 0
-    },
+    },*/
     PREREQS: [prereqSchema],
     description: {
         type: String,
@@ -88,7 +88,6 @@ const courseSchema = new mongoose.Schema({
     ]
 }, {collection: 'courses'});
 
-//courseSchema.index({courseID: 1});  // index for frequently searched field
 
 const Course = mongoose.model('Course', courseSchema);
 module.exports = Course;

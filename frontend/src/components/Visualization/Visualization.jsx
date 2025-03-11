@@ -142,16 +142,7 @@ const Visualization = () => {
           </Modal.Header>
           <Modal.Body>
             <p><strong>Title:</strong> {selectedCourse?.title}</p>
-            <p><strong>Units:</strong> {selectedCourse?.units}</p>
             <p><strong>Description:</strong> {selectedCourse?.description}</p>
-            <p><strong>Prerequisites:</strong> {selectedCourse?.PREREQS 
-              ? selectedCourse.PREREQS.map(prereq => 
-                  prereq.courses.map(course => {
-                    return course.prereqName || "Unknown Course";
-                  }).join(" OR ")
-                ).join(" AND ")
-              : "None"}
-            </p>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
