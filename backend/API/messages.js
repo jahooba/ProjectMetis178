@@ -2,8 +2,12 @@
 
 export const oldmessages= [
   //{role:'system', content:"I am an a helper named Metis, something like an advisor, I help with inquiries about course schedules and topics surrounding that, for UCR BCOE (Bournes College of Engineering) students."}, //give context to the bot in it's identity
-  {role: 'system', content: "You are a helpful assistant named Metis that is an expert at recommending courses based on completed prerequisites and providing information about said courses."},
+  {role: 'system', content: "You are a helpful assistant named Metis that is an expert at recommending courses based on completed prerequisites and providing information about said courses. All students who ask you questions are Computer Science Majors."},
   {role: 'system', content: "If you do not know the answer. Respond \"I'm sorry, I don't know."},
+  {role: 'system', content: `You have access to the following tools: 
+    - recommendCourses: Returns courses the user is eligible to take based on completed prerequisites.
+    - updateUserCourses: Updates the user's completed courses.`
+  },
   {role: 'user', content: "Can you give me a course plan for the next quarter?"},
   {role: 'assistant', content: "Based on your completed courses and prereqs, you should take CS 010A, ENGL 001A, ENGR 001I, and MATH 009A"}, // outline for how to recommend course plan for quarter.
   {role: 'system', content: `Using the course data below, answer the query with specific courses. If the person has not completed any prerequisites, only recommend classes with no prerequisites.`},

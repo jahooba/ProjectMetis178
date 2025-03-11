@@ -3,9 +3,9 @@ import sidebarIcon from '../../assets/visualizationAssets/sidebar-icon.png'
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
 import { MainContainer, ChatContainer, MessageList, Message, MessageInput, TypingIndicator } from '@chatscope/chat-ui-kit-react'
 import { useState } from 'react';
-import answer from '../../../../backend/API/api'
+import {answer, fetchAllCourses, generateEmbeds, pullOllamaModel} from '../../../../backend/API/api'
 //import ollama from 'ollama'
-//import { Ollama } from 'ollama';
+import { Ollama } from 'ollama';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 
@@ -26,6 +26,15 @@ const Visualization = () => {
 
   const currentUserId = user?._id;
   const completedCourses = user?.completedCourses;
+
+  //const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
+  //const metis = new Ollama({ host: 'http://127.0.0.1:11434' });
+//probably change this to be called once.
+  //let modelname = "llama3.2";
+  //let embedname = "mxbai-embed-large"
+  //pullOllamaModel(modelname);
+  //pullOllamaModel(embedname);
+  let courseDB = fetchAllCourses;
 
   const toggleChat = () => {
     setChatVisible(!chatVisible);
@@ -50,8 +59,6 @@ const Visualization = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [prereqData, setPrereqData] = useState([]);  // Store prereq data globally
 
-
-  //const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
 
   const handleSend = async (message) => {
     const newMessage = {
