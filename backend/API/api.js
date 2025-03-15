@@ -1,5 +1,5 @@
 import { Ollama } from 'ollama';
-import ollama from 'ollama';
+//import ollama from 'ollama';
 import {oldmessages} from './messages';
 import axios from 'axios';
 
@@ -11,10 +11,12 @@ let userCourses = [];
 let currentUser = '';
 const messages = oldmessages;
 let userInterest = '';
+let installed = false;
 
 
 async function listOllamaModels(modelName) {
   try {
+    if(installed) return true;
     const response = await axios.get('http://localhost:11434/api/tags');
     const models = response.data.models.map(model => model.name);
     console.log('Available Ollama Models:');
@@ -30,11 +32,14 @@ async function listOllamaModels(modelName) {
 
 async function pullOllamaModel(modelName) {
   try {
+    if(!installed) {
     const alreadyInstalled = await listOllamaModels(modelName);
-    console.log(alreadyInstalled);
-    if(alreadyInstalled) {
+    installed = alreadyInstalled;
+    }
+    console.log(installed);
+    if(installed) {
       console.log(`Model "${modelName}" is already installed.`);
-      return;
+      return `Model "${modelName}" is alreasy installed!`;
     }
 
     console.log(`Pulling model: ${modelName}...`);
@@ -45,14 +50,14 @@ async function pullOllamaModel(modelName) {
 
     console.log(`Model "${modelName}" pulled successfully!`);
     console.log('Details:', response.data);
+    return `Model "${modelName}" pulled successfully!`;
 
   } catch (error) {
     console.error('Error pulling model:', error.response ? error.response.data : error.message);
   }
 }
 
-// Replace 'llama3' with the model you want to pull
-//pullOllamaModel(modelname);
+pullOllamaModel(modelname);
 
 
 async function fetchAllCourses() {
@@ -84,15 +89,17 @@ async function addUserInfo() {
 //options for what chatbot can do.
 function prompt(question) {
   return `classify topics for: ${question} from options:  
-  1) Recommend course plan/classes/courses (recommend 3-4 specific courses), 
+  1) Recommend course plan/classes/courses or any variation of this included in ${question} (recommend 3-4 specific courses) , 
   2) Classify queries that include variations of {"what is {course}", "what are the prereqs"} as find information for course given the courseID or title (example CS 100 or Software Construction), and the type of information from {title: course title, description: general information about course, PREREQS: list of the course's prerequisites, courseID: course id, units: amount of units the course is worth}} Return only courseID/title and the type of information from the list given (example: CS 100, description)
-  3) Classify user interests (example: \"I am interesed in {topic}...\")
-  ONLY respond with the topics classified. You can have either 1 topic or 2 topics returned. You can only return one of the following:
+  3) Classify given user interests (example: \"I am interesed in {topic}, I like {topic}\") from ${question}
+  4) None of the above
+  ONLY respond with the topics classified. You can ONLY return one of the following:
   1. "1,2"
   2. "1,3"
   3. "1"
   4. "2"
   5. "3"
+  6. "4"
   `
 }
 
@@ -259,12 +266,6 @@ async function recommendCourses(completed) {
     courseID: course.courseID,
     title: course.title
   }))
-/*   const all = await fetchAllCourses();
-  const finDesc = all.filter(course => fin.some(fin => fin.courseID === course.courseID)).map(course => ({
-    courseID: course.courseID,
-    title: course.title,
-    description: course.description
-  })) */
   console.log(fin)
   const ret = JSON.stringify(fin)
   //const ret = JSON.stringify(finDesc)
@@ -336,7 +337,7 @@ async function answer(input, currentUserId, completedCourses) {
    //recommend courses
     if(match1 || match2 || match3) {
       if(match3) {
-        newPrompt =  `classify my topics of interest(1 or 2 words each)(ex: AI, math, etc) for ${input} ONLY give a list of topics (ex: math, AI, CS)`
+        newPrompt =  `classify my fields of interest (ONLY words like: AI, math, etc) for ${input} ONLY give a list of fields (ONLY words, NO numbers) (ex: math, AI, CS)`
         messages.push({ role: 'user', content: newPrompt})
         const list = await metis.chat({
           model: modelname || 'llama3.2',
@@ -352,7 +353,31 @@ async function answer(input, currentUserId, completedCourses) {
         const valid = await recommendCourses(userCourses);
         console.log("VALID:" ,valid);
         //newPrompt = `choose the 3 or 4 courses from these ${recommend}`;
-        newPrompt = augment_prompt("1. From the available courses recommend 3-4 courses by their courseID. Response format: \"Based on your completed courses and prereqs, I would recommend these courses.\n 1.courseID\n 2. courseID\n etc bc reason\"", userCourses, valid, userInterest)
+        newPrompt =augment_prompt(`1. From the available courses recommend 3-4 courses by their courseID. Reponse format: \"courseId, courseId, courseID\"`, userCourses, valid, userInterest);
+        console.log("1st rec prompt", newPrompt)
+        messages.push({ role: 'user', content: newPrompt})
+        const list = await metis.chat({
+          model: modelname || 'llama3.2',
+          messages: messages,
+        });
+        messages.push(list.message);
+        console.log("Query:", list)
+        let str = list.message.content
+        const rec = str.split(",").map(courseID => courseID.trim());
+        let simplCourse = courses.filter(course => rec.includes(course.courseID)).map(course => ({
+          courseID: course.courseID,
+          title: course.title,
+          description: course.description
+        }))
+        newPrompt =augment_prompt(`1.You MUST list ALL recommendations: ${JSON.stringify(rec)}. Response format: \"Based on your completed courses and interests, I would recommend the following courses:
+
+          1. courseID
+          2. courseID
+          etc (for course in recommendations)
+          
+          Include some information or reasoning for each from {Possible Next Courses}
+          `, userCourses, JSON.stringify(simplCourse), userInterest);
+        //newPrompt = augment_prompt("1. From the available courses recommend 3-4 courses by their courseID. Response format: \"Based on your completed courses and prereqs, I would recommend these courses.\n 1.courseID\n 2. courseID\n etc bc reason\"", userCourses, valid, userInterest)
       }
       //give information for a course
       if(match2 && !match1) {
@@ -377,8 +402,7 @@ async function answer(input, currentUserId, completedCourses) {
         newPrompt = promptInfo2(input, JSON.stringify(info))
         //messages.push({ role: 'user', content: newPrompt})
       }
-  }
-    else {
+  } else {
       const valid = await recommendCourses(userCourses);
       console.log("VALID:" ,valid);
       newPrompt = augment_prompt(input , userCourses, valid, userInterest)

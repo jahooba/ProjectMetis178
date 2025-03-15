@@ -30,7 +30,7 @@ const Visualization = () => {
   //const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
   //const metis = new Ollama({ host: 'http://127.0.0.1:11434' });
 //probably change this to be called once.
-  //let modelname = "llama3.2";
+  let modelname = "llama3.2";
   //let embedname = "mxbai-embed-large"
   //pullOllamaModel(modelname);
   //pullOllamaModel(embedname);
@@ -74,6 +74,8 @@ const Visualization = () => {
 
     // Send the user's message to Ollama and get a response
     let completed = user?.completedCourses;
+    //await pullOllamaModel(modelname);
+
     const response = await answer(newMessage.message, currentUserId, completed);
     console.log(response.message.content);
     /* const response = await ollama.chat({
