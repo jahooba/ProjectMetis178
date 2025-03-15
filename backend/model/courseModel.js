@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+
+
 const nestedLogicSchema = new mongoose.Schema({
     type: {
         type: String,
@@ -11,6 +13,7 @@ const nestedLogicSchema = new mongoose.Schema({
 
 const singleCourseSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.Mixed,
+    prereqName: { type: String },
     concurrent: {
         type: Boolean,
         default: false
@@ -47,7 +50,7 @@ const courseSchema = new mongoose.Schema({
         max: 12,
         default: 0
     },
-    lectHrs: {
+    /*lectHrs: {
         type: Number,
         min: 0,
         max: 12,
@@ -70,7 +73,7 @@ const courseSchema = new mongoose.Schema({
         min: 0,
         max: 12,
         default: 0
-    },
+    },*/
     PREREQS: [prereqSchema],
     description: {
         type: String,
@@ -83,9 +86,8 @@ const courseSchema = new mongoose.Schema({
             default: []
         }
     ]
-});
+}, {collection: 'courses'});
 
-//courseSchema.index({courseID: 1});  // index for frequently searched field
 
 const Course = mongoose.model('Course', courseSchema);
 module.exports = Course;

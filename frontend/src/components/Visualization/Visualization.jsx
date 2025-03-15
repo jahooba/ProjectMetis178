@@ -3,18 +3,38 @@ import sidebarIcon from '../../assets/visualizationAssets/sidebar-icon.png'
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
 import { MainContainer, ChatContainer, MessageList, Message, MessageInput, TypingIndicator } from '@chatscope/chat-ui-kit-react'
 import { useState } from 'react';
+import {answer, fetchAllCourses, pullOllamaModel} from '../../../../backend/API/api'
 //import ollama from 'ollama'
-import { Ollama } from 'ollama'
+import { Ollama } from 'ollama';
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
 
+import { useContext } from 'react';
+import { UserContext } from '../../context/UserContext';
 import CourseTree from './CourseTree';
 
 import { Link } from 'react-router-dom';
 
 
 import styles from './Visualization.module.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Visualization = () => {
   const [chatVisible, setChatVisible] = useState(false);
+  const { user } = useContext(UserContext);
+  console.log("User from context:", user);
+
+  const currentUserId = user?._id;
+  const completedCourses = user?.completedCourses;
+
+  //const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
+  //const metis = new Ollama({ host: 'http://127.0.0.1:11434' });
+//probably change this to be called once.
+  let modelname = "llama3.2";
+  //let embedname = "mxbai-embed-large"
+  //pullOllamaModel(modelname);
+  //pullOllamaModel(embedname);
+  //let courseDB = fetchAllCourses;
 
   const toggleChat = () => {
     setChatVisible(!chatVisible);
@@ -27,10 +47,18 @@ const Visualization = () => {
       message: "Hello, I am Metis!!!",
       sender: "Metis",
       direction: "incoming"
+    },
+    {
+      message: "What would you like help with today?",
+      sender: "Metis",
+      direction: "incoming"
     }
   ])
 
-  const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [prereqData, setPrereqData] = useState([]);  // Store prereq data globally
+
 
   const handleSend = async (message) => {
     const newMessage = {
@@ -45,13 +73,18 @@ const Visualization = () => {
     setTyping(true);
 
     // Send the user's message to Ollama and get a response
-    const response = await ollama.chat({
-      model: 'llama3.2:1b',
+    let completed = user?.completedCourses;
+    //await pullOllamaModel(modelname);
+
+    const response = await answer(newMessage.message, currentUserId, completed);
+    console.log(response.message.content);
+    /* const response = await ollama.chat({
+      model: 'llama3.2',
       messages: [{role:'system', content:"I am an imaginary person named Metis, acting as a helper, like an advisor, for UCR BCOE students."}, { role: 'user', content: newMessage.message }],
-    });
+    }); */
 
 
-    // Assuming response contains a 'content' field with the bot's reply
+    // Assuming response worked
     const botMessage = {
       message: response.message.content,
       sender: "Metis",
@@ -59,10 +92,15 @@ const Visualization = () => {
     };
 
     // Append the bot's response to the messages
-    console.log(response);
     setMessages((prevMessages) => [...prevMessages, botMessage]);
     setTyping(false);
     
+  };
+
+  const handleShowModal = (course) => {
+    console.log("Opening modal with course data:", course);
+    setSelectedCourse(course);
+    setShowModal(true);
   };
 
 
@@ -92,9 +130,27 @@ const Visualization = () => {
             </div>
             
             <div className='content'>
-              <CourseTree/>
+              <CourseTree 
+                onNodeRightClick={handleShowModal} 
+                setPrereqData={setPrereqData} 
+                prereqData={prereqData} 
+                currentUserId={currentUserId}
+                completedCourses={completedCourses}
+                />
             </div>
         </div>
+        <Modal className={styles.courseModal} show={showModal} onHide={() => setShowModal(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>{selectedCourse?.courseID || "Course Details"}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p><strong>Title:</strong> {selectedCourse?.title}</p>
+            <p><strong>Description:</strong> {selectedCourse?.description}</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
+          </Modal.Footer>
+        </Modal>
     </div>
   )
 }
