@@ -3,7 +3,7 @@ import sidebarIcon from '../../assets/visualizationAssets/sidebar-icon.png'
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
 import { MainContainer, ChatContainer, MessageList, Message, MessageInput, TypingIndicator } from '@chatscope/chat-ui-kit-react'
 import { useState } from 'react';
-import {answer, fetchAllCourses, generateEmbeds, pullOllamaModel} from '../../../../backend/API/api'
+import {answer, fetchAllCourses, pullOllamaModel} from '../../../../backend/API/api'
 //import ollama from 'ollama'
 import { Ollama } from 'ollama';
 import Button from 'react-bootstrap/Button';
@@ -49,7 +49,7 @@ const Visualization = () => {
       direction: "incoming"
     },
     {
-      message: "Please enter your school year. (Ex: I am a first year.)",
+      message: "What would you like help with today?",
       sender: "Metis",
       direction: "incoming"
     }
@@ -73,7 +73,8 @@ const Visualization = () => {
     setTyping(true);
 
     // Send the user's message to Ollama and get a response
-    const response = await answer(newMessage.message, currentUserId, completedCourses);
+    let completed = user?.completedCourses;
+    const response = await answer(newMessage.message, currentUserId, completed);
     console.log(response.message.content);
     /* const response = await ollama.chat({
       model: 'llama3.2',
