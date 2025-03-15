@@ -2,7 +2,6 @@ import { Ollama } from 'ollama';
 import ollama from 'ollama';
 import {oldmessages, schema} from './messages';
 import axios from 'axios';
-//import tf from '@tensorflow/tfjs-node';
 
 const metis = new Ollama({ host: 'http://127.0.0.1:11434' });
 //probably change this to be called once.
@@ -10,6 +9,7 @@ let modelname = "llama3.2";
 let embedname = "mxbai-embed-large"
 let userCourses = [];
 let currentUser = '';
+
 
 async function listOllamaModels(modelName) {
   try {
@@ -90,16 +90,12 @@ function prompt(question) {
 }
 
 //rephrase query to use context of course DB + requirements
-function augment_prompt(query, courseDB, completedCourses) {
+function augment_prompt(query, completedCourses, posCourses) {
   return `Using the ONLY the context below, answer the query.
-
-  Contexts: {
-    Current_Major: {Computer Science},
-
-    Completed_courses: ${completedCourses},
-
-    all_courses: ${courseDB}
-    
+  Context: {
+    Major: Computer Science,
+    Completed Courses: ${completedCourses},
+    Possible Next Courses: ${posCourses}
   }
 
   Query: ${query}`
@@ -114,7 +110,7 @@ async function generateEmbeds(input) {
     console.log(`Generating embeddings: ...`);
     let courseEmbeddings = [];
     for (const course of input) {
-      const textToEmbed = `${course.courseID}: ${course.description}`
+      const textToEmbed = `${course.courseID}: ${course.PREREQS}`
       console.log("input: ", textToEmbed);
       const response = ollama.embed({
         model: embedname,
@@ -126,6 +122,7 @@ async function generateEmbeds(input) {
       return response;
     }
     console.log(`Embedding created successfully!`);
+
 
   } catch (error) {
       console.error('Error creating embedding:', error.response ? error.response.data : error.message);
@@ -211,23 +208,37 @@ function getAvailableCourses(allCourses, completedCourses) {
   }));
 }
 
+function removeTaken(possible, complete) {
+  return possible.filter(course => !complete.includes(course))
+}
+
 // Subtract two numbers function 
-async function recommendCourses({courses, completed}) {
+async function recommendCourses(completed) {
   console.log("Recommending courses for:", completed);
 
-  const allCourses = courses || JSON.stringify(await fetchAllCourses(), null, 2);
+  const allCourses = await fetchAllCourses();
   //const formattedCourses = JSON.stringify(allCourses, null, 2);
   //const parsedCourses = JSON.parse(formattedCourses);
+  const filteredCourses = allCourses.map(course => ({
+    courseID: course.courseID,
+    PREREQS: course.PREREQS
+  }))
 
   console.log("Recommending courses...");
   let recommendedCoursePlan = []; //final classes to be recommended here (3-4 classes)
 
-  console.log("All courses:\n", allCourses);
+  console.log("All courses:\n", JSON.stringify(filteredCourses));
   console.log("Completed courses:\n", completed);
-  const recommend = getAvailableCourses(allCourses, completed);
+  const recommend = getAvailableCourses(filteredCourses, completed);
   console.log("Available courses:" , recommend);
+  let finalPlan = removeTaken(recommend, completed)
+  let fin = finalPlan.map(course => ({
+    courseID: course.courseID
+  }))
+  const ret = JSON.stringify(fin)
+  console.log(fin)
 
-  return `Here are all of the classes that you can take: ${recommend}`;
+  return `Here are all of the classes that you can take: ${fin}`;
 }
 
 // Tool definition for recommend function
@@ -235,51 +246,16 @@ const recommendCoursesTool = {
   type: 'function',
   function: {
       name: 'recommendCourses',
-      description: 'Returns a list of courses from all available courses that the student is eligible to take based on completed prerequisites.',
+      description: 'recommends classes/ a course plan the user can take based on the completed classes',
       parameters: {
           type: 'object',
           properties: {
-              courses: { 
-                  type: 'array',
-                  items: {
-                      type: 'object',
-                      properties: {
-                          courseID: { type: 'string', description: 'Unique identifier of the course' },
-                          title: { type: 'string', description: 'Course title' },
-                          PREREQS: { 
-                              type: 'array',
-                              description: 'List of prerequisite course conditions',
-                              items: {
-                                  type: 'object',
-                                  properties: {
-                                      type: { type: 'string', enum: ['&&', '||'], description: 'Logical type: AND (&&) or OR (||)' },
-                                      courses: { 
-                                          type: 'array',
-                                          items: { 
-                                              type: 'object',
-                                              properties: {
-                                                  prereqName: { type: 'string', description: 'Prerequisite course name' },
-                                                  concurrent: { type: 'boolean', description: 'Whether the course can be taken concurrently' }
-                                              },
-                                              required: ['prereqName']
-                                          },
-                                          description: 'List of required prerequisite courses'
-                                      }
-                                  },
-                                  required: ['type', 'courses']
-                              }
-                          }
-                      },
-                      required: ['courseID', 'title', 'PREREQS']
-                  }
-              },
               completed: { 
-                  type: 'array',
-                  items: { type: 'string' },
-                  description: 'List of completed course names'
+                  type: 'string',
+                  description: 'list of classes taken'
               }
             },
-          required: ['courses', 'completed'],
+          required: ['completed'],
       }
   }
 };
@@ -303,7 +279,13 @@ const updateUserCoursesTool = {
   }
 };
 
+/* const Course = await fetchAllCourses;
 
+use.load().then(async model => {
+   const sampleCourse = Course[0];
+   const embeddings = await model.embed(sampleCourse['PREREQS']);
+   console.log(embeddings.arraySync());
+}); */
 
 
 //figure out what you want to do and act acordingly
@@ -323,9 +305,10 @@ async function answer(input, currentUserId, completedCourses) {
     console.log("Formatted Course Data:", formattedCourses);
     console.log("Course Data:", courses);
     console.log("Completed Courses:", completedCourses);
-    //const embeddings = await generateEmbeds(parsedCourses);
+    //const embeddings = await generateEmbeds(formattedCourses);
+    //const embeds = embeddings.embeddings;
     // Log courses
-    //console.log("Formatted Course Data:", embeddings.data);
+    //console.log("Formatted Course Data:", embeddings.embeddings);
     
 
     // Add course data to messages
@@ -349,7 +332,8 @@ async function answer(input, currentUserId, completedCourses) {
     console.log(messages.slice(-1)[0]);
     const res = await metis.chat({
       model: modelname || 'llama3.2',
-      messages: messages
+      messages: messages,
+      tool_calls: [ recommendCoursesTool, updateUserCoursesTool]
     });
 
     
@@ -360,25 +344,41 @@ async function answer(input, currentUserId, completedCourses) {
     if(match) {
       const filteredCourses = courses.map(course => ({
         courseID: course.courseID,
-        title: course.title,
-        PREREQS: course.PREREQS.map(prereq => ({
-            type: prereq.type,
-            courses: prereq.courses.map(c => ({
-                type: c.type || null,
-                courses: c.courses || null,
-                prereqName: c.prereqName || null  // Ensures nested logic is handled
-            })).filter(c => c.prereqName) // Remove undefined values
-        }))
-      }));
+        PREREQS: course.PREREQS
+      }))
       let newFormat = JSON.stringify(filteredCourses, null, 2);
-      console.log("New Format: " ,newFormat);
+      const valid = await recommendCourses(completedCourses);
+      console.log("VALID:" ,valid);
+      //console.log("New Format: " ,newFormat);
+/* 
+      const textSplitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 200,
+        chunkOverlap: 0,
+      });
+      const texts = await textSplitter.splitText(formattedCourses);
+
+      const response  = await metis.embed({
+        model: embedname,
+        input: texts,
+      })
+
+      inputRes = await metis.embed({
+        model: embedname,
+        input: input,
+      }) */
+
+
+
+      //const embeddings = await generateEmbeds(formattedCourses)
+      //const embeds = embeddings.embeddings
+
       //let recommend = recommendCourses(formattedCourses, completedCourses);
       //console.log("Recommended:" ,recommend);
       //newPrompt = `choose the 3 or 4 courses from these ${recommend}`;
-      newPrompt = augment_prompt("1.Find all courses whose prereqs I've completed. Do not explicitly say this in your final response. 2. From the courses in 1, recommend 4-5 courses. Prioritize courses whose PREREQS I have already taken (or have no PREREQS) which are also the most common PREREQS for other courses. Only respond with: \"I would recommend these courses. 1.courseID1, 2. courseID2, etc\"", newFormat, completedCourses);
+      newPrompt = augment_prompt("1.Find all courses whose prereqs I've completed. Do not explicitly say this in your final response. 2. From the courses in 1, recommend 3-4 courses. Prioritize courses whose PREREQS I have already taken (or have no PREREQS) which are also the most common PREREQS for other courses. Only respond with: \"I would recommend these courses. 1.courseID1, 2. courseID2, etc and a short reason\"", completedCourses, valid)
     }
     else {
-      newPrompt = augment_prompt(input, formattedCourses, completedCourses);
+      newPrompt = augment_prompt(input, completedCourses, formattedCourses);
       //messages.push({ role: 'user', content: augment_prompt(input, formattedCourses, completedCourses)});
     }
     messages.push({ role: 'user', content: newPrompt});
@@ -401,30 +401,27 @@ async function answer(input, currentUserId, completedCourses) {
       tool_calls: [recommendCoursesTool, updateUserCoursesTool]
     });
 
-    /* 
-    console.log(res2);
+    if (res2.message.tool_calls) {
+      // Process tool calls from the response
+      for (const tool of response.message.tool_calls) {
+          const functionToCall = availableFunctions[tool.function.name];
+          if (functionToCall) {
+              console.log('Calling function:', tool.function.name);
+              console.log('Arguments:', tool.function.arguments);
+              output = functionToCall(tool.function.arguments);
+              console.log('Function output:', output);
 
-    // Check if the AI wants to use a tool
-if (res2.message.tool_calls) {
-  for (const toolCall of res2.message.tool_calls) {
-    const { name, arguments: args } = toolCall.function;
-
-    if (availableFunction[name]) {
-      console.log(`Calling tool: ${name}`);
-      const toolResult = await availableFunction[name](JSON.parse(args));
-
-      // Add the tool response to messages
-      messages.push({
-        role: 'system',
-        content: `Tool response for ${name}: ${toolResult}`
-      });
-
-      console.log(`Tool result:`, toolResult);
-    } else {
-      console.error(`No function found for tool: ${name}`);
-    }
-  }
-} */
+              // Add the function response to messages for the model to use
+              messages.push(response.message);
+              messages.push({
+                  role: 'tool',
+                  content: output.toString(),
+              });
+          } else {
+              console.log('Function', tool.function.name, 'not found');
+          }
+        }
+      }
 
     console.log(res2);
     messages.push(res2.message);
