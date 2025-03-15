@@ -37,6 +37,28 @@ const updateCompletedCourses = async (req, res) => {
   }
 };
 
+const getCompletedCourses = async (req, res) => {
+  try {
+      // Assuming you get the user ID from an authentication token or session
+      const userId = req.query.userId?.trim();
+      if (!userId) {
+        return res.status(400).json({ error: "Missing userId" });
+      }
+      console.log("userID:", userId)
+      // Find user by ID and select only the completed_courses field
+      const user = await User.findById(userId);
+
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+      console.log("Done:", user.completedCourses)
+      res.status(200).json(user.completedCourses);
+  } catch (error) {
+      res.status(500).json({ message: 'Server error', error });
+  }
+};
+
 module.exports = {
   updateCompletedCourses,
+  getCompletedCourses
 };

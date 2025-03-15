@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { updateCompletedCourses } = require('../controllers/userController');
+const { updateCompletedCourses, getCompletedCourses } = require('../controllers/userController');
 const cors = require('cors');
 
 router.use(cors({
@@ -10,5 +10,6 @@ router.use(cors({
 
 // POST endpoint to update a user's completed courses
 router.post('/users/updateCompleted', updateCompletedCourses);
+router.get('/users/getCompleted', getCompletedCourses);
 
 module.exports = router;

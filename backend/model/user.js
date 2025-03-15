@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
     completedCourses: {
         type: [String],
         default: []
+    },
+    interests: {
+        type: [String],
+        default: []
     }
 });
 

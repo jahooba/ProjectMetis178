@@ -1,14 +1,16 @@
 import { Ollama } from 'ollama';
 import ollama from 'ollama';
-import {oldmessages, schema} from './messages';
+import {oldmessages} from './messages';
 import axios from 'axios';
 
 const metis = new Ollama({ host: 'http://127.0.0.1:11434' });
 //probably change this to be called once.
 let modelname = "llama3.2";
-let embedname = "mxbai-embed-large"
+//let embedname = "mxbai-embed-large"
 let userCourses = [];
 let currentUser = '';
+const messages = oldmessages;
+let userInterest = '';
 
 
 async function listOllamaModels(modelName) {
@@ -81,30 +83,42 @@ async function addUserInfo() {
 
 //options for what chatbot can do.
 function prompt(question) {
-  return `classify topic for: ${question} from options: 
-  1) Add user's interests, 
-  2) Recommend course plan/classes (recommend 3-4 specific courses), 
-  3) Information for course (course, type of info) from {course from provided course data, type from {"labHrs", "discHrs", "studyHrs", "PREREQS","flatPrereqs", "courseID", "description", "lectHrs", "title", "units"} } 
-  4) Other. 
-  Only respond with the topic classified.`
+  return `classify topics for: ${question} from options:  
+  1) Recommend course plan/classes/courses (recommend 3-4 specific courses), 
+  2) Classify queries that include variations of {"what is {course}", "what are the prereqs"} as find information for course given the courseID or title (example CS 100 or Software Construction), and the type of information from {title: course title, description: general information about course, PREREQS: list of the course's prerequisites, courseID: course id, units: amount of units the course is worth}} Return only courseID/title and the type of information from the list given (example: CS 100, description)
+  3) Classify user interests (example: \"I am interesed in {topic}...\")
+  ONLY respond with the topics classified. You can have either 1 topic or 2 topics returned. You can only return one of the following:
+  1. "1,2"
+  2. "1,3"
+  3. "1"
+  4. "2"
+  5. "3"
+  `
+}
+
+function promptInfo(question, courses) {
+  return `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in ${question} from ${courses} & classify information module from {title, courseID, description, PREREQS} for: ${question} \n ============ \n ONLY Give courseId/title`
+}
+
+function promptInfo2(question, course) {
+  return `Give information for ${question} from context: ${course}`
 }
 
 //rephrase query to use context of course DB + requirements
-function augment_prompt(query, completedCourses, posCourses) {
+function augment_prompt(query, completed, posCourses, interests) {
   return `Using the ONLY the context below, answer the query.
   Context: {
     Major: Computer Science,
-    Completed Courses: ${completedCourses},
+    Interests: ${interests},
+    Completed Courses: ${completed},
     Possible Next Courses: ${posCourses}
   }
 
-  Query: ${query}`
+  Query: ${query} Include the courseID when possible.`
 }
 
-const messages = oldmessages;
-
 //create embeds for courseDB and requirements (__TO FINISH__)
-async function generateEmbeds(input) {
+/* async function generateEmbeds(input) {
   try {
     const embed = await pullOllamaModel(embedname);
     console.log(`Generating embeddings: ...`);
@@ -127,7 +141,7 @@ async function generateEmbeds(input) {
   } catch (error) {
       console.error('Error creating embedding:', error.response ? error.response.data : error.message);
   }
-}
+} */
 
 // just to find if the user completed course actually exists in DB
 async function findCourse(course) {
@@ -149,19 +163,23 @@ async function findCourse(course) {
 
 
 //if the option is add completed courses --> run this
-function updateUserCourses(completedCourses){
+async function updateUserCourses(newCourses, currentUser, completed){
   if (currentUser) {
     // Immediately trigger the API call to update the user's completed courses
-    for(const courseName of completedCourses) {
+    for(const courseName of newCourses) {
+      if(!completed.includes(courseName)) {
         if(findCourse(courseName)) {
           axios.post(`${import.meta.env.VITE_API_URL}/api/users/updateCompleted`, {        
             userId: currentUser,  // currentUserId should be defined (e.g., passed as a prop)
             course: courseName,
             action: add
           }, { withCredentials: true })
+        }
       }
     }
-    return `Done Updating: ${completedCourses}`;
+    const comp = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/getCompleted?userId=${encodeURIComponent(currentUser)}`,{withCredentials: true})
+    console.log(comp.data)
+    return `Done Updating: ${comp.data}`;
   }
   return "No updates made";
 }
@@ -209,7 +227,11 @@ function getAvailableCourses(allCourses, completedCourses) {
 }
 
 function removeTaken(possible, complete) {
-  return possible.filter(course => !complete.includes(course))
+  console.log("Possible:", possible)
+  console.log("Completed:", complete)
+  const final = possible.filter(course => !complete.includes(course.courseID))
+  console.log("Final:", final)
+  return final
 }
 
 // Subtract two numbers function 
@@ -221,7 +243,8 @@ async function recommendCourses(completed) {
   //const parsedCourses = JSON.parse(formattedCourses);
   const filteredCourses = allCourses.map(course => ({
     courseID: course.courseID,
-    PREREQS: course.PREREQS
+    PREREQS: course.PREREQS,
+    title: course.title
   }))
 
   console.log("Recommending courses...");
@@ -233,59 +256,28 @@ async function recommendCourses(completed) {
   console.log("Available courses:" , recommend);
   let finalPlan = removeTaken(recommend, completed)
   let fin = finalPlan.map(course => ({
-    courseID: course.courseID
+    courseID: course.courseID,
+    title: course.title
   }))
-  const ret = JSON.stringify(fin)
+/*   const all = await fetchAllCourses();
+  const finDesc = all.filter(course => fin.some(fin => fin.courseID === course.courseID)).map(course => ({
+    courseID: course.courseID,
+    title: course.title,
+    description: course.description
+  })) */
   console.log(fin)
+  const ret = JSON.stringify(fin)
+  //const ret = JSON.stringify(finDesc)
+  //console.log("FINNN", finDesc)
 
-  return `Here are all of the classes that you can take: ${fin}`;
+  return `Here are all of the classes that you can take: ${ret}`;
 }
 
-// Tool definition for recommend function
-const recommendCoursesTool = {
-  type: 'function',
-  function: {
-      name: 'recommendCourses',
-      description: 'recommends classes/ a course plan the user can take based on the completed classes',
-      parameters: {
-          type: 'object',
-          properties: {
-              completed: { 
-                  type: 'string',
-                  description: 'list of classes taken'
-              }
-            },
-          required: ['completed'],
-      }
-  }
-};
+function calculateProgress(completed) {
+  let missing = []
 
-const updateUserCoursesTool = {
-  type: 'function',
-  function: {
-    name: 'updateUserCourses',
-    description: 'Updates database with user\'s completed courses. Returns \"Done\"',
-    parameters: {
-      type: 'object',
-      properties: {
-        completedCourses: { 
-          type: 'array',
-          items: { type: 'string' },
-          description: 'List of completed course names'
-        }
-      }
-    },
-    required: ['completedCourses']
-  }
-};
-
-/* const Course = await fetchAllCourses;
-
-use.load().then(async model => {
-   const sampleCourse = Course[0];
-   const embeddings = await model.embed(sampleCourse['PREREQS']);
-   console.log(embeddings.arraySync());
-}); */
+  return `Here are the classes you still need to take ${JSON.stringify(missing)}`
+}
 
 
 //figure out what you want to do and act acordingly
@@ -295,21 +287,25 @@ async function answer(input, currentUserId, completedCourses) {
   try {
     // Fetch courses
     const courses = await fetchAllCourses();
-    //add user info (year and quarter to user db) // keep for answer customization
-    userCourses = completedCourses;
     currentUser = currentUserId;
+    userCourses = []
+    if(currentUserId) {
+        // Immediately trigger the API call to update the user's completed courses
+      const comp = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/getCompleted?userId=${encodeURIComponent(currentUserId)}`,{withCredentials: true})
+      //console.log("Completed:", comp.data)
+      userCourses = comp.data
+    }
+    if(!userCourses.length > 0) {
+      userCourses = completedCourses
+    }
+    //add user info (year and quarter to user db) // keep for answer customization
     // Format course data
     const formattedCourses = JSON.stringify(courses, null, 2);
     const parsedCourses = JSON.parse(formattedCourses);
-    console.log("Parsed Course Data:", parsedCourses);
-    console.log("Formatted Course Data:", formattedCourses);
-    console.log("Course Data:", courses);
-    console.log("Completed Courses:", completedCourses);
-    //const embeddings = await generateEmbeds(formattedCourses);
-    //const embeds = embeddings.embeddings;
-    // Log courses
-    //console.log("Formatted Course Data:", embeddings.embeddings);
-    
+    //console.log("Parsed Course Data:", parsedCourses);
+    //console.log("Formatted Course Data:", formattedCourses);
+    //console.log("Course Data:", courses);
+    console.log("Completed Courses:", userCourses);
 
     // Add course data to messages
    /*  messages.push({
@@ -321,107 +317,86 @@ async function answer(input, currentUserId, completedCourses) {
         4. Keep responses short.`
     }); */
 
-    messages.push({
-      role: 'system',
-      content: `You MUST use one of the following tools to answer: 
-      - recommendCourses: Returns courses the user is eligible to take based on completed prerequisites.
-      - updateUserCourses: Updates the user's completed courses.`
-    });
     // Add user input
-    messages.push({role: 'user', content: prompt(input)});
-    console.log(messages.slice(-1)[0]);
+    messages.push({role: 'user', content: prompt(input)})
+    //console.log(messages.slice(-1)[0]);
     const res = await metis.chat({
       model: modelname || 'llama3.2',
       messages: messages,
-      tool_calls: [ recommendCoursesTool, updateUserCoursesTool]
     });
 
     
     let newPrompt = '';
     console.log("Answer 1:" ,res.message);
-    const match = res.message.content.match(/\b[2]\b/);
-    console.log("Match:" ,match);
-    if(match) {
-      const filteredCourses = courses.map(course => ({
+    const match1 = res.message.content.match(/\b[1]\b/); //recommend
+    const match2 = res.message.content.match(/\b[2]\b/); // info
+    const match3 = res.message.content.match(/\b[3]\b/); //interests
+    console.log(`Matches 1-3:${match1}, ${match2}, ${match3}`)
+
+   //recommend courses
+    if(match1 || match2 || match3) {
+      if(match3) {
+        newPrompt =  `classify my topics of interest(1 or 2 words each)(ex: AI, math, etc) for ${input} ONLY give a list of topics (ex: math, AI, CS)`
+        messages.push({ role: 'user', content: newPrompt})
+        const list = await metis.chat({
+          model: modelname || 'llama3.2',
+          messages: messages,
+        });
+        messages.push(list.message);
+        console.log("Query:", list)
+        let interests = list.message.content
+        userInterest = interests
+
+      }
+      if(match1) {
+        const valid = await recommendCourses(userCourses);
+        console.log("VALID:" ,valid);
+        //newPrompt = `choose the 3 or 4 courses from these ${recommend}`;
+        newPrompt = augment_prompt("1. From the available courses recommend 3-4 courses by their courseID. Response format: \"Based on your completed courses and prereqs, I would recommend these courses.\n 1.courseID\n 2. courseID\n etc bc reason\"", userCourses, valid, userInterest)
+      }
+      //give information for a course
+      if(match2 && !match1) {
+      messages.push({ role: 'system', content: 'Given this JSON formated course data, with structure {"courseID", "description", "title", "units"}'})
+      let simplCourse = courses.map(course => ({
         courseID: course.courseID,
-        PREREQS: course.PREREQS
+        title: course.title
       }))
-      let newFormat = JSON.stringify(filteredCourses, null, 2);
-      const valid = await recommendCourses(completedCourses);
-      console.log("VALID:" ,valid);
-      //console.log("New Format: " ,newFormat);
-/* 
-      const textSplitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 200,
-        chunkOverlap: 0,
-      });
-      const texts = await textSplitter.splitText(formattedCourses);
-
-      const response  = await metis.embed({
-        model: embedname,
-        input: texts,
-      })
-
-      inputRes = await metis.embed({
-        model: embedname,
-        input: input,
-      }) */
-
-
-
-      //const embeddings = await generateEmbeds(formattedCourses)
-      //const embeds = embeddings.embeddings
-
-      //let recommend = recommendCourses(formattedCourses, completedCourses);
-      //console.log("Recommended:" ,recommend);
-      //newPrompt = `choose the 3 or 4 courses from these ${recommend}`;
-      newPrompt = augment_prompt("1.Find all courses whose prereqs I've completed. Do not explicitly say this in your final response. 2. From the courses in 1, recommend 3-4 courses. Prioritize courses whose PREREQS I have already taken (or have no PREREQS) which are also the most common PREREQS for other courses. Only respond with: \"I would recommend these courses. 1.courseID1, 2. courseID2, etc and a short reason\"", completedCourses, valid)
-    }
+      console.log("Courses", JSON.stringify(simplCourse))
+      newPrompt =  promptInfo(input, JSON.stringify(simplCourse))
+      console.log("Prompt:", newPrompt)
+      messages.push({ role: 'user', content: newPrompt})
+        const list = await metis.chat({
+          model: modelname || 'llama3.2',
+          messages: messages,
+        });
+        messages.push(list.message);
+        console.log("Query:", list.message)
+        let query = []
+        query.push(list.message.content)
+        let info = courses.filter(course => query.includes(course.courseID || course.title))
+        newPrompt = promptInfo2(input, JSON.stringify(info))
+        //messages.push({ role: 'user', content: newPrompt})
+      }
+  }
     else {
-      newPrompt = augment_prompt(input, completedCourses, formattedCourses);
-      //messages.push({ role: 'user', content: augment_prompt(input, formattedCourses, completedCourses)});
+      const valid = await recommendCourses(userCourses);
+      console.log("VALID:" ,valid);
+      newPrompt = augment_prompt(input , userCourses, valid, userInterest)
+      //messages.push({ role: 'user', content: augment_prompt(input, formattedCourses, userCourses)});
     }
     messages.push({ role: 'user', content: newPrompt});
     console.log("Augmented prompt:" , newPrompt);
     //console.log("Classification:", res.message);
 
-    //messages.push({ role: 'user', content: augment_prompt(input, formattedCourses, completedCourses)});
+    //messages.push({ role: 'user', content: augment_prompt(input, formattedCourses, userCourses)});
     //messages.push({ role: 'user', content: input});
     console.log(messages.slice(-1)[0]);
-
-    const availableFunction = {
-      recommendCourses: recommendCourses,
-      updateUserCourses: updateUserCourses
-    }
 
     // Generate AI response
     const res2 = await metis.chat({
       model: modelname || 'llama3.2',
       messages: messages,
-      tool_calls: [recommendCoursesTool, updateUserCoursesTool]
     });
-
-    if (res2.message.tool_calls) {
-      // Process tool calls from the response
-      for (const tool of response.message.tool_calls) {
-          const functionToCall = availableFunctions[tool.function.name];
-          if (functionToCall) {
-              console.log('Calling function:', tool.function.name);
-              console.log('Arguments:', tool.function.arguments);
-              output = functionToCall(tool.function.arguments);
-              console.log('Function output:', output);
-
-              // Add the function response to messages for the model to use
-              messages.push(response.message);
-              messages.push({
-                  role: 'tool',
-                  content: output.toString(),
-              });
-          } else {
-              console.log('Function', tool.function.name, 'not found');
-          }
-        }
-      }
 
     console.log(res2);
     messages.push(res2.message);
@@ -434,7 +409,6 @@ async function answer(input, currentUserId, completedCourses) {
 
 export {
   answer,
-  fetchAllCourses, 
-  generateEmbeds, 
+  fetchAllCourses,  
   pullOllamaModel,
 };
