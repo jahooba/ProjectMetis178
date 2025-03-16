@@ -88,23 +88,30 @@ async function addUserInfo() {
 
 //options for what chatbot can do.
 function prompt(question) {
-  return `classify topics for: ${question} from options:  
-  1) Recommend course plan/classes/courses or any variation of this included in ${question} (recommend 3-4 specific courses) , 
-  2) Classify queries that include variations of {"what is {course}", "what are the prereqs"} as find information for course given the courseID or title (example CS 100 or Software Construction), and the type of information from {title: course title, description: general information about course, PREREQS: list of the course's prerequisites, courseID: course id, units: amount of units the course is worth}} Return only courseID/title and the type of information from the list given (example: CS 100, description)
-  3) Classify given user interests (example: \"I am interesed in {topic}, I like {topic}\") from ${question}
+  return `classify actions for: 
+    Query: ${question}
+
+    from options:  
+  1) Recommend course plan/classes/courses or any variation of this included in query (recommend 3-4 specific courses) , 
+  2) Give information for a specific course given a courseID or course title (example: CS 105 or Data Analysis Methods) from query
+  3) Classify my interests (example: \"I am interesed in AI\" returns AI, \"I like math\" returns math) from query
   4) None of the above
-  ONLY respond with the topics classified. You can ONLY return one of the following:
-  1. "1,2"
-  2. "1,3"
-  3. "1"
-  4. "2"
-  5. "3"
-  6. "4"
+
+  ONLY respond with the actions classified. You can ONLY return one of the following:
+  1. "1,3"
+  2. "1"
+  3. "2"
+  4. "3"
+  5. "4"
   `
 }
 
+function interestPrompt(query) {
+return `Classify my interests (example: \"I am interesed in AI\" returns AI, \"I like math\" returns math) from ${query} ONLY give interest list (ex: math, AI, logic puzzles)`
+}
+
 function promptInfo(question, courses) {
-  return `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in ${question} from ${courses} & classify information module from {title, courseID, description, PREREQS} for: ${question} \n ============ \n ONLY Give courseId/title`
+  return `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in [${question}] from: ${courses} \n ============ \n ONLY Give courseId/title`
 }
 
 function promptInfo2(question, course) {
@@ -118,10 +125,10 @@ function augment_prompt(query, completed, posCourses, interests) {
     Major: Computer Science,
     Interests: ${interests},
     Completed Courses: ${completed},
-    Possible Next Courses: ${posCourses}
+    All courses I can take: ${posCourses}
   }
 
-  Query: ${query} Include the courseID when possible.`
+  Query: ${query} Use the courseID when possible.`
 }
 
 //create embeds for courseDB and requirements (__TO FINISH__)
@@ -325,7 +332,7 @@ async function answer(input, currentUserId, completedCourses) {
       model: modelname || 'llama3.2',
       messages: messages,
     });
-
+    messages.push(res.message)
     
     let newPrompt = '';
     console.log("Answer 1:" ,res.message);
@@ -337,7 +344,7 @@ async function answer(input, currentUserId, completedCourses) {
    //recommend courses
     if(match1 || match2 || match3) {
       if(match3) {
-        newPrompt =  `classify my fields of interest (ONLY words like: AI, math, etc) for ${input} ONLY give a list of fields (ONLY words, NO numbers) (ex: math, AI, CS)`
+        newPrompt =  interestPrompt(input)
         messages.push({ role: 'user', content: newPrompt})
         const list = await metis.chat({
           model: modelname || 'llama3.2',
@@ -353,7 +360,7 @@ async function answer(input, currentUserId, completedCourses) {
         const valid = await recommendCourses(userCourses);
         console.log("VALID:" ,valid);
         //newPrompt = `choose the 3 or 4 courses from these ${recommend}`;
-        newPrompt =augment_prompt(`1. From the available courses recommend 3-4 courses by their courseID. Reponse format: \"courseId, courseId, courseID\"`, userCourses, valid, userInterest);
+        newPrompt =augment_prompt(`1. From the available courses recommend 5-6 courses by their courseID. Reponse format: \"courseId, courseId, courseID\"`, userCourses, valid, userInterest);
         console.log("1st rec prompt", newPrompt)
         messages.push({ role: 'user', content: newPrompt})
         const list = await metis.chat({
@@ -369,13 +376,19 @@ async function answer(input, currentUserId, completedCourses) {
           title: course.title,
           description: course.description
         }))
-        newPrompt =augment_prompt(`1.You MUST list ALL recommendations: ${JSON.stringify(rec)}. Response format: \"Based on your completed courses and interests, I would recommend the following courses:
+        newPrompt =augment_prompt(`1. You MUST list 3-4 recommendations and include the rest as aLternatives from: ${JSON.stringify(rec)}. 
+        2. Response format: 
+        \"Based on your completed courses and interests, I would recommend the following courses:
 
           1. courseID
           2. courseID
+          3. courseID
+          4. courseID
+          alternative: courseID
+          alternative: courseID
           etc (for course in recommendations)
           
-          Include some information or reasoning for each from {Possible Next Courses}
+          Include some information or reasoning for each from {All courses I can take}
           `, userCourses, JSON.stringify(simplCourse), userInterest);
         //newPrompt = augment_prompt("1. From the available courses recommend 3-4 courses by their courseID. Response format: \"Based on your completed courses and prereqs, I would recommend these courses.\n 1.courseID\n 2. courseID\n etc bc reason\"", userCourses, valid, userInterest)
       }

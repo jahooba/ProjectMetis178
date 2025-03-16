@@ -5,7 +5,7 @@ import { MainContainer, ChatContainer, MessageList, Message, MessageInput, Typin
 import { useState } from 'react';
 import {answer, fetchAllCourses, pullOllamaModel} from '../../../../backend/API/api'
 //import ollama from 'ollama'
-import { Ollama } from 'ollama';
+//import { Ollama } from 'ollama';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 
@@ -30,7 +30,7 @@ const Visualization = () => {
   //const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
   //const metis = new Ollama({ host: 'http://127.0.0.1:11434' });
 //probably change this to be called once.
-  let modelname = "llama3.2";
+  //let modelname = "llama3.2";
   //let embedname = "mxbai-embed-large"
   //pullOllamaModel(modelname);
   //pullOllamaModel(embedname);
