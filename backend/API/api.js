@@ -92,9 +92,9 @@ function prompt(question) {
     Query: ${question}
 
     from options:  
-  1) Recommend course plan/classes/courses or any variation of this included in query (recommend 3-4 specific courses) , 
-  2) Give information for a specific course given a courseID or course title (example: CS 105 or Data Analysis Methods) from query
-  3) Classify my interests (example: \"I am interesed in AI\" returns AI, \"I like math\" returns math) from query
+  1) Recommend course plan/ classes/ courses or any variation of this included in query (recommend 3-4 specific courses) , 
+  2) Give information about a specific course given a courseID or course title (example: What is CS 105 or What is Data Analysis Methods) from query
+  3) List my interests (example: \"I am interesed in AI\" returns AI, \"I like math\" returns math) from query
   4) None of the above
 
   ONLY respond with the actions classified. You can ONLY return one of the following:
@@ -107,11 +107,11 @@ function prompt(question) {
 }
 
 function interestPrompt(query) {
-return `Classify my interests (example: \"I am interesed in AI\" returns AI, \"I like math\" returns math) from ${query} ONLY give interest list (ex: math, AI, logic puzzles)`
+return `Classify my listed interests (example: \"I am interesed in AI\" returns AI, \"I like math\" returns math) from ${query} ONLY give interest list (ex: math, AI, logic puzzles)`
 }
 
 function promptInfo(question, courses) {
-  return `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in [${question}] from: ${courses} \n ============ \n ONLY Give courseId/title`
+  return `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in [${question}] from: ${courses} \n ============ \n ONLY Give courseId/title. If there are no matches respond NONE`
 }
 
 function promptInfo2(question, course) {
@@ -157,6 +157,38 @@ function augment_prompt(query, completed, posCourses, interests) {
   }
 } */
 
+//catch an info query
+function containsCourseID(query, courses) {
+  const lowerStr = query.toLowerCase(); // Normalize input string to lowercase
+  console.log(lowerStr)
+  
+  return courses.some(course => {
+      const courseIDs = course.courseID.toLowerCase().replace(/\s*/g, ''); // Normalize course IDs
+      const normalizedQuery = lowerStr.replace(/\s*/g, '');
+      //console.log(JSON.stringify(courseIDs))
+      console.log(normalizedQuery)
+      return normalizedQuery.includes(courseIDs);
+  });
+}
+
+//find what course we need info from
+function getMatchingCourseIDs(str, courses) {
+  const lowerStr = str.toLowerCase(); // Normalize input string to lowercase
+  let matches = [];
+
+  courses.forEach(course => {
+      const courseID = course.courseID.toLowerCase().replace(/\s*/g, '') // Normalize course IDs
+      console.log(JSON.stringify(courseID))
+      const pattern = `\\b${courseID.replace(/\s*/g, '\\s*')}\\b`
+      //console.log(pattern)
+      if (new RegExp(pattern, 'i').test(lowerStr)) {
+        matches.push(course.courseID); // Store matched courseID in uppercase (original format)
+      }
+  });
+  console.log("Match:", matches)
+  return matches.length > 0 ? matches : null; // Return matches or null if none found
+}
+
 // just to find if the user completed course actually exists in DB
 async function findCourse(course) {
   try {
@@ -174,6 +206,7 @@ async function findCourse(course) {
     }
   }
 }
+
 
 
 //if the option is add completed courses --> run this
@@ -196,6 +229,23 @@ async function updateUserCourses(newCourses, currentUser, completed){
     return `Done Updating: ${comp.data}`;
   }
   return "No updates made";
+}
+
+function checkProject(course) {
+  
+}
+
+function checkTE(course) {
+  
+}
+
+function checkDepth(course) {
+  
+}
+
+function prioCourse(possible) {
+
+  return prio;
 }
 
 function hasCompletedPrereqs(prereqs, completedCourses) {
@@ -295,8 +345,13 @@ async function answer(input, currentUserId, completedCourses) {
   try {
     // Fetch courses
     const courses = await fetchAllCourses();
+    let simplCourse = courses.map(course => ({
+      courseID: course.courseID,
+    }))
     currentUser = currentUserId;
     userCourses = []
+    let newPrompt = '';
+
     if(currentUserId) {
         // Immediately trigger the API call to update the user's completed courses
       const comp = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/getCompleted?userId=${encodeURIComponent(currentUserId)}`,{withCredentials: true})
@@ -314,32 +369,35 @@ async function answer(input, currentUserId, completedCourses) {
     //console.log("Formatted Course Data:", formattedCourses);
     //console.log("Course Data:", courses);
     console.log("Completed Courses:", userCourses);
-
-    // Add course data to messages
-   /*  messages.push({
-      role: 'system',
-      content: 
-        `1. Using this course data:\n${formattedCourses}. Answer the query.
-        2. These are the prerequisites that have been completed: ${completedCourses}.
-        3. Only recommend 3-4 specific courses from the course data above.
-        4. Keep responses short.`
-    }); */
-
+    let match1 = false
+    let match2 = false
+    let match3 = false
+    let infoCourses = [];
+    // Check if query references a course (only courseID)
+    console.log("infoMatch:", containsCourseID(input, simplCourse))
+    if(containsCourseID(input, simplCourse)) {
+      infoCourses = getMatchingCourseIDs(input, simplCourse);
+      match2 = true;
+      
+    }
+    console.log("Info", match2)
     // Add user input
-    messages.push({role: 'user', content: prompt(input)})
-    //console.log(messages.slice(-1)[0]);
-    const res = await metis.chat({
-      model: modelname || 'llama3.2',
-      messages: messages,
-    });
-    messages.push(res.message)
-    
-    let newPrompt = '';
-    console.log("Answer 1:" ,res.message);
-    const match1 = res.message.content.match(/\b[1]\b/); //recommend
-    const match2 = res.message.content.match(/\b[2]\b/); // info
-    const match3 = res.message.content.match(/\b[3]\b/); //interests
-    console.log(`Matches 1-3:${match1}, ${match2}, ${match3}`)
+
+
+    if(!match2) {
+      messages.push({role: 'user', content: prompt(input)})
+      //console.log(messages.slice(-1)[0]);
+      const res = await metis.chat({
+        model: modelname || 'llama3.2',
+        messages: messages,
+      });
+      messages.push(res.message)
+      console.log("Answer 1:" ,res.message);
+      match1 = res.message.content.match(/\b[1]\b/); //recommend
+      match2 = res.message.content.match(/\b[2]\b/); // info
+      match3 = res.message.content.match(/\b[3]\b/); //interests
+      console.log(`Matches 1-3:${match1}, ${match2}, ${match3}`)
+    }
 
    //recommend courses
     if(match1 || match2 || match3) {
@@ -354,9 +412,28 @@ async function answer(input, currentUserId, completedCourses) {
         console.log("Query:", list)
         let interests = list.message.content
         userInterest = interests
-
+        match1 = true
       }
-      if(match1) {
+      //give information for a course
+      if(match2) {
+/*         messages.push({ role: 'system', content: 'Given this JSON formated course data, with structure {"courseID", "description", "title", "units"}'})
+        console.log("Courses", JSON.stringify(simplCourse))
+        newPrompt =  promptInfo(input, JSON.stringify(simplCourse))
+        console.log("Prompt:", newPrompt)
+        messages.push({ role: 'user', content: newPrompt})
+          const list = await metis.chat({
+            model: modelname || 'llama3.2',
+            messages: messages,
+          });
+          messages.push(list.message);
+          console.log("Query:", list.message)
+          infoCourses.push(list.message.content)
+          if(!infoCourses.some("NONE")) { */
+            let info = courses.filter(course => infoCourses.includes(course.courseID || course.title))
+            newPrompt = promptInfo2(input, JSON.stringify(info))
+          //messages.push({ role: 'user', content: newPrompt})
+        }
+      else if(match1) {
         const valid = await recommendCourses(userCourses);
         console.log("VALID:" ,valid);
         //newPrompt = `choose the 3 or 4 courses from these ${recommend}`;
@@ -371,54 +448,38 @@ async function answer(input, currentUserId, completedCourses) {
         console.log("Query:", list)
         let str = list.message.content
         const rec = str.split(",").map(courseID => courseID.trim());
-        let simplCourse = courses.filter(course => rec.includes(course.courseID)).map(course => ({
+        simplCourse = courses.filter(course => rec.includes(course.courseID)).map(course => ({
           courseID: course.courseID,
           title: course.title,
           description: course.description
         }))
-        newPrompt =augment_prompt(`1. You MUST list 3-4 recommendations and include the rest as aLternatives from: ${JSON.stringify(rec)}. 
+        newPrompt =augment_prompt(`1. You MUST list 3-4 recommendations THEN may include the remaining courses as alternatives, from: ${JSON.stringify(rec)}
+        Do NOT give duplicate courseIDs. 
         2. Response format: 
         \"Based on your completed courses and interests, I would recommend the following courses:
 
-          1. courseID
-          2. courseID
-          3. courseID
-          4. courseID
-          alternative: courseID
-          alternative: courseID
+          1. courseID1
+          2. courseID2
+          3. courseID3
+          4. courseID4
+          alternative: courseID5
+          alternative: courseID6
           etc (for course in recommendations)
-          
+
           Include some information or reasoning for each from {All courses I can take}
           `, userCourses, JSON.stringify(simplCourse), userInterest);
         //newPrompt = augment_prompt("1. From the available courses recommend 3-4 courses by their courseID. Response format: \"Based on your completed courses and prereqs, I would recommend these courses.\n 1.courseID\n 2. courseID\n etc bc reason\"", userCourses, valid, userInterest)
       }
-      //give information for a course
-      if(match2 && !match1) {
-      messages.push({ role: 'system', content: 'Given this JSON formated course data, with structure {"courseID", "description", "title", "units"}'})
-      let simplCourse = courses.map(course => ({
-        courseID: course.courseID,
-        title: course.title
-      }))
-      console.log("Courses", JSON.stringify(simplCourse))
-      newPrompt =  promptInfo(input, JSON.stringify(simplCourse))
-      console.log("Prompt:", newPrompt)
-      messages.push({ role: 'user', content: newPrompt})
-        const list = await metis.chat({
-          model: modelname || 'llama3.2',
-          messages: messages,
-        });
-        messages.push(list.message);
-        console.log("Query:", list.message)
-        let query = []
-        query.push(list.message.content)
-        let info = courses.filter(course => query.includes(course.courseID || course.title))
-        newPrompt = promptInfo2(input, JSON.stringify(info))
-        //messages.push({ role: 'user', content: newPrompt})
-      }
   } else {
       const valid = await recommendCourses(userCourses);
-      console.log("VALID:" ,valid);
-      newPrompt = augment_prompt(input , userCourses, valid, userInterest)
+      simplCourse = courses.filter(course => valid.includes(course.courseID)).map(course => ({
+        courseID: course.courseID,
+        title: course.title,
+        description: course.description
+      }))
+      console.log("VALID:" ,simplCourse);
+      newPrompt = augment_prompt(input , userCourses, JSON.stringify(simplCourse), userInterest)
+      console.log("Prompt:" , newPrompt);
       //messages.push({ role: 'user', content: augment_prompt(input, formattedCourses, userCourses)});
     }
     messages.push({ role: 'user', content: newPrompt});
@@ -427,7 +488,6 @@ async function answer(input, currentUserId, completedCourses) {
 
     //messages.push({ role: 'user', content: augment_prompt(input, formattedCourses, userCourses)});
     //messages.push({ role: 'user', content: input});
-    console.log(messages.slice(-1)[0]);
 
     // Generate AI response
     const res2 = await metis.chat({

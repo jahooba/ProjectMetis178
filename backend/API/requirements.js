@@ -1,0 +1,33 @@
+//CS major reqeuirements
+//can be the format for requirements of each major
+
+export const requirements = [
+   {"courseID": "ENGR 001I"},
+   {"courseID": "CS 010A"},
+   {"courseID": "CS 010B"},
+   {"courseID": "CS 010C"},
+   {"courseID": "CS 061"},
+   {"courseID": "CS 011 or MATH 011"},
+   {"courseID": "MATH 009A"},
+   {"courseID": "MATH 009B"},
+   {"courseID": "MATH 009C"},
+   {"courseID": "MATH 010A"},
+   {"courseID": "MATH 031 or EE020B"},
+   {"courseID": "PHYS 040A"},
+   {"courseID": "PHYS 040B}"},
+   {"courseID": "PHYS 040C"},
+   {"courseID": "ENGR 101I"},
+   {"courseID": "CS 100"},
+   {"courseID": "CS 141"},
+   {"courseID": "CS 150"},
+   {"courseID": "CS 152"},
+   {"courseID": "CS 153"},
+   {"courseID": "CS 161"},
+   {"courseID": "PROJECT"},
+   {"courseID": "CS 120A or EE 120A"},
+   {"courseID": "CS 111"},
+   {"courseID": "ENGR 180W"},
+   {"courseID": "STAT 155"},
+   {"courseID": "TE"},
+   {"courseID": "DEPTH"},
+]

@@ -88,17 +88,17 @@ export const oldmessages= [
   5. "4"
   `},
   {role: 'assistant', content: '1,3'},
-  {role: 'user', content: `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in [ What is cs100?] from: ${courses} 
+  {role: 'user', content: `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in [ What is cs100?] from:  
   \n ============ \n 
   ONLY Give courseId/title`
     },
   {role: 'assistant', content: 'CS 100'},
-  {role: 'user', content: `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in [cs100] from: ${courses} 
+  {role: 'user', content: `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in [cs100] from: 
   \n ============ \n 
   ONLY Give courseId/title`
     },
   {role: 'assistant', content: 'CS 100'},
-  {role: 'user', content: `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in [cs 100 description] from: ${courses} 
+  {role: 'user', content: `classify courseId (ex: CS 105) or closest title (ex: Data Analysis Methods) of the one given in [cs 100 description] from: 
   \n ============ \n 
   ONLY Give courseId/title`
     },
