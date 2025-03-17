@@ -160,13 +160,13 @@ function augment_prompt(query, completed, posCourses, interests) {
 //catch an info query
 function containsCourseID(query, courses) {
   const lowerStr = query.toLowerCase(); // Normalize input string to lowercase
-  console.log(lowerStr)
+  //console.log(lowerStr)
   
   return courses.some(course => {
       const courseIDs = course.courseID.toLowerCase().replace(/\s*/g, ''); // Normalize course IDs
       const normalizedQuery = lowerStr.replace(/\s*/g, '');
       //console.log(JSON.stringify(courseIDs))
-      console.log(normalizedQuery)
+      //console.log(normalizedQuery)
       return normalizedQuery.includes(courseIDs);
   });
 }
@@ -178,7 +178,7 @@ function getMatchingCourseIDs(str, courses) {
 
   courses.forEach(course => {
       const courseID = course.courseID.toLowerCase().replace(/\s*/g, '') // Normalize course IDs
-      console.log(JSON.stringify(courseID))
+      //console.log(JSON.stringify(courseID))
       const pattern = `\\b${courseID.replace(/\s*/g, '\\s*')}\\b`
       //console.log(pattern)
       if (new RegExp(pattern, 'i').test(lowerStr)) {
