@@ -47,7 +47,7 @@ export const TE = [
    {"courseID": "PHIL 124"}
 ]
 
-export const depth = [
+export const DEPTH = [
    {"courseID": "BIEN 010"},
    {"courseID": "EE 030A"},
    {"courseID": "EE 030LA"},
@@ -66,13 +66,22 @@ export const depth = [
    {"courseID": "ME 010"}
 ]
 
-export const project = [
-   {"courseID": "CS 178A"},
-   {"courseID": "CS 179E"},
-   {"courseID": "CS 179F"},
-   {"courseID": "CS 179G"},
-   {"courseID": "CS 179I"},
-   {"courseID": "CS 179J"},
-   {"courseID": "CS 179M"},
-   {"courseID": "CS 179N"},
+export const PROJECT = [
+   {"type": "||",
+      courses: [
+         {
+         type: "&&",
+         courses: [
+            {"courseID": "CS 178A"},
+            {"courseID": "CS 178B"}
+         ]},
+         {"courseID": "CS 179E"},
+         {"courseID": "CS 179F"},
+         {"courseID": "CS 179G"},
+         {"courseID": "CS 179I"},
+         {"courseID": "CS 179J"},
+         {"courseID": "CS 179M"},
+         {"courseID": "CS 179N"}
+      ],
+   }
 ]
