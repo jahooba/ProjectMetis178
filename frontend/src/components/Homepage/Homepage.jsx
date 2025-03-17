@@ -47,7 +47,7 @@ const Homepage = () => {
 
             <div className={styles.bottomSection}>
                 <Link to="/signup"><button className={styles.beginButton}>Get started</button></Link>
-                <p className={styles.footer}>Powered by Ollama, etc.</p>
+                <p className={styles.footer}>Powered by Ollama and MongoDB</p>
             </div>
         </div>
 

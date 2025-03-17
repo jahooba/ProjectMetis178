@@ -109,19 +109,20 @@
 }
 
 .footer {
-    color: #f2efef;
+    color: #a7a1a193;
+    width: 300px;
 }
 
 /* Right Webpage Section */
 .rightSection {
     flex: 1;
     clip-path: polygon(20% 0, 100% 0%, 100% 100%, 0 100%);
-    background-color: #a7cfec;
+    background-color: #fcfeff;
     height: auto;
-    background-image: url(../../assets/homepageAssets/tree.png);
+    background-image: url(../../assets/homepageAssets/tree-stock.png);
     background-repeat: no-repeat;
-    background-size: cover;
-    background-position: -250px 62px;
+    background-size: 720px;
+    background-position: top 80px left 65px;
 }
 
 .headerSection {
@@ -141,6 +142,7 @@
 
 .signUp:hover {
     cursor: pointer;
+    text-decoration: underline;
 }
 
 .login {
@@ -152,6 +154,7 @@
 
 .login:hover {
     cursor: pointer;
+    text-decoration: underline;
 }
 
 .colorOverlay {
