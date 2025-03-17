@@ -416,24 +416,27 @@ async function answer(input, currentUserId, completedCourses) {
       }
       //give information for a course
       if(match2) {
-/*         messages.push({ role: 'system', content: 'Given this JSON formated course data, with structure {"courseID", "description", "title", "units"}'})
-        console.log("Courses", JSON.stringify(simplCourse))
-        newPrompt =  promptInfo(input, JSON.stringify(simplCourse))
-        console.log("Prompt:", newPrompt)
-        messages.push({ role: 'user', content: newPrompt})
-          const list = await metis.chat({
-            model: modelname || 'llama3.2',
-            messages: messages,
-          });
-          messages.push(list.message);
-          console.log("Query:", list.message)
-          infoCourses.push(list.message.content)
-          if(!infoCourses.some("NONE")) { */
+          /* messages.push({ role: 'system', content: 'Given this JSON formated course data, with structure {"courseID", "description", "title", "units"}'})
+          console.log("Courses", JSON.stringify(simplCourse))
+          newPrompt =  promptInfo(input, JSON.stringify(simplCourse))
+          console.log("Prompt:", newPrompt)
+          messages.push({ role: 'user', content: newPrompt})
+            const list = await metis.chat({
+              model: modelname || 'llama3.2',
+              messages: messages,
+            });
+            messages.push(list.message);
+            console.log("Query:", list.message)
+            infoCourses.push(list.message.content) */
             let info = courses.filter(course => infoCourses.includes(course.courseID || course.title))
             newPrompt = promptInfo2(input, JSON.stringify(info))
+            if(!infoCourses) {
+              match1 = true
+              match2 = false
+            }
           //messages.push({ role: 'user', content: newPrompt})
         }
-      else if(match1) {
+        if(match1 && !match2) {
         const valid = await recommendCourses(userCourses);
         console.log("VALID:" ,valid);
         //newPrompt = `choose the 3 or 4 courses from these ${recommend}`;
