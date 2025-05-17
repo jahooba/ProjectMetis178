@@ -23,7 +23,9 @@ Metis is an AI-powered web application designed to assist college students with 
 
 ---
 
-## Screenshots
+## Screenshots and Project Demo Video
+
+[Metis Demo Video] (https://www.youtube.com/watch?v=MWOhm6TGCBI&ab_channel=JoshuaPena)
 
 <img width="668" alt="Image" src="https://github.com/user-attachments/assets/fbe62fc1-ff1f-46cd-975d-b99662969d85" />
 
